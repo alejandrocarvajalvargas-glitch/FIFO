@@ -1,0 +1,11 @@
+# Todos los archivos de texto van con saltos de línea LF, también en Windows.
+# Así el bundle generado y las pruebas dan idéntico en la máquina de cada uno y
+# en GitHub Actions (si no, el paso "git diff --exit-code" fallaría por CRLF).
+* text=auto eol=lf
+
+# Binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.zip binary

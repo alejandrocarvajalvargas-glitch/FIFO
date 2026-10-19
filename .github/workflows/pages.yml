@@ -1,0 +1,45 @@
+name: Publicar la app instalable
+
+# Publica el contenido de pwa/ en GitHub Pages.
+# URL resultante: https://<usuario>.github.io/<repositorio>/
+# (o https://<usuario>.github.io/ si el repositorio se llama <usuario>.github.io)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pwa/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    name: Publicar pwa/
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empaquetar la carpeta pwa
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pwa
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4

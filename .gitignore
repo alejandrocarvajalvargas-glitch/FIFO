@@ -1,0 +1,14 @@
+# Dependencias locales de clasp y del sistema
+node_modules/
+
+# Credenciales de Google: NUNCA al repositorio
+.clasprc.json
+.clasprc.json.*
+.clasp.json
+!/.clasp.json.example
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

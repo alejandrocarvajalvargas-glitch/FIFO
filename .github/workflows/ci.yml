@@ -1,0 +1,56 @@
+name: Pruebas
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas y bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # El proyecto no tiene dependencias: no hace falta npm install.
+      - name: Generar el bundle y pwa/index.html
+        run: node tools/build-onepager.js
+
+      - name: Reglas de fecha y estado
+        run: node tests/fifo_test.js
+
+      - name: API (Code.gs maestro)
+        run: node tests/fifo_api.js
+
+      - name: API (FIFO_UnArchivo.gs, el que se pega en Apps Script)
+        run: node tests/fifo_api.js bundle
+
+      - name: Interfaz y app instalable
+        run: node tests/fifo_ui.js
+
+      - name: Plantilla del correo (render real)
+        run: node tests/fifo_render.js
+
+      - name: Integración de punta a punta
+        run: node tests/fifo_e2e.js
+
+      # Si alguien cambió Code.gs/AppMovil.html y olvidó ejecutar el build, el
+      # bundle del repositorio quedaría viejo. Aquí se detecta.
+      - name: El repositorio queda limpio después de generar
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Hay archivos generados desactualizados. Ejecuta 'npm run build' y haz commit."
+            git status --porcelain
+            git --no-pager diff
+            exit 1
+          fi
+          echo "Bundle y pwa/index.html sincronizados con las fuentes."

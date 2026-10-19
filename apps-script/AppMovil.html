@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F2B46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIFO">
+<title>FIFO · Control de Vencimientos</title>
+<style>
+  :root{
+    --azul:#0F2B46; --azul-claro:#1B4A72; --fondo:#F1F5F9; --linea:#E2E8F0;
+    --texto:#1E293B; --gris:#64748B; --blanco:#FFFFFF;
+    --rojo:#B91C1C; --rojo-f:#FEE2E2;
+    --naranja:#C2410C; --naranja-f:#FFEDD5;
+    --amarillo:#A16207; --amarillo-f:#FEF9C3;
+    --verde:#15803D; --verde-f:#DCFCE7;
+    --gris-f:#F1F5F9;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--fondo); color:var(--texto); font-size:16px; line-height:1.4;
+    overscroll-behavior-y:contain;
+  }
+  .oculto{display:none !important}
+
+  /* ---------- cabecera ---------- */
+  header{
+    background:var(--azul); color:#fff; padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+    position:sticky; top:0; z-index:20; box-shadow:0 1px 4px rgba(0,0,0,.18);
+  }
+  header h1{margin:0;font-size:16px;font-weight:700;letter-spacing:.2px}
+  header .sub{font-size:11.5px;opacity:.8;margin-top:1px}
+  header .punto{
+    position:absolute;right:12px;top:calc(14px + env(safe-area-inset-top));
+    font-size:11px;background:rgba(255,255,255,.16);padding:3px 9px;border-radius:999px
+  }
+
+  /* ---------- estructura ---------- */
+  main{padding:12px 12px calc(84px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+  .tarjeta{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:14px;margin-bottom:12px}
+  .tarjeta h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--gris)}
+  label{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:12px 0 5px}
+  label:first-child{margin-top:0}
+  input,select,textarea{
+    width:100%;padding:12px;font-size:16px;font-family:inherit;color:var(--texto);
+    border:1.5px solid var(--linea);border-radius:9px;background:#fff;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--azul-claro)}
+  textarea{resize:vertical;min-height:60px}
+  .fila{display:flex;gap:8px}
+  .fila > *{flex:1}
+  .ayuda{font-size:11.5px;color:var(--gris);margin-top:5px}
+  .ayuda.ok{color:var(--verde)}
+  .ayuda.malo{color:var(--rojo)}
+
+  /* ---------- botones ---------- */
+  button{font-family:inherit;font-size:15px;font-weight:600;border:none;border-radius:9px;padding:12px 14px;cursor:pointer}
+  .btn-azul{background:var(--azul);color:#fff}
+  .btn-azul:active{background:var(--azul-claro)}
+  .btn-gris{background:var(--gris-f);color:var(--texto);border:1px solid var(--linea)}
+  .btn-rojo{background:var(--rojo-f);color:var(--rojo);border:1px solid #FCA5A5}
+  .btn-naranja{background:var(--naranja-f);color:var(--naranja);border:1px solid #FDBA74}
+  .btn-verde{background:var(--verde-f);color:var(--verde);border:1px solid #86EFAC}
+  .btn-ancho{width:100%;display:block}
+  .btn-grande{font-size:17px;padding:16px}
+  button[disabled]{opacity:.5}
+  .btn-scan{
+    background:linear-gradient(135deg,#1B4A72,#0F2B46);color:#fff;font-size:18px;padding:18px;
+    display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(15,43,70,.28)
+  }
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .chip{border:1px solid var(--linea);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;color:#475569}
+  .chip.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+
+  /* ---------- producto ---------- */
+  .producto{border:1.5px solid var(--linea);border-radius:10px;padding:11px;background:#F8FAFC}
+  .producto .n{font-size:15px;font-weight:700}
+  .producto .m{font-size:12px;color:var(--gris);margin-top:2px}
+  .aviso{background:var(--amarillo-f);border:1px solid #FDE68A;color:#854D0E;border-radius:9px;padding:10px;font-size:13px;margin-top:10px}
+
+  /* ---------- semáforo / lista ---------- */
+  .reg{background:#fff;border:1px solid var(--linea);border-left-width:5px;border-radius:11px;padding:12px;margin-bottom:9px}
+  .reg .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .reg .desc{font-size:15px;font-weight:700;line-height:1.25}
+  .reg .meta{font-size:12px;color:var(--gris);margin-top:3px}
+  .reg .dias{font-size:13px;font-weight:800;white-space:nowrap;text-align:right}
+  .reg .estado{font-size:11px;font-weight:700;color:#fff;background:var(--azul);display:inline-block;padding:2px 8px;border-radius:999px;margin-top:4px}
+  .reg .acciones{display:flex;gap:7px;margin-top:10px}
+  .reg .acciones button{flex:1;padding:9px;font-size:13px}
+  .vacio{text-align:center;color:var(--gris);font-size:14px;padding:26px 10px}
+
+  /* ---------- tabla (vista plana) ---------- */
+  .tabla-caja{background:#fff;border:1px solid var(--linea);border-radius:11px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.datos{border-collapse:collapse;width:100%;min-width:680px;font-size:12.5px}
+  table.datos th{
+    position:sticky;top:0;z-index:1;background:#0F2B46;color:#fff;text-align:left;
+    font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;padding:8px 9px;white-space:nowrap
+  }
+  table.datos td{padding:8px 9px;border-bottom:1px solid var(--linea);vertical-align:top}
+  table.datos tbody tr:nth-child(even){background:#F8FAFC}
+  table.datos tbody tr:last-child td{border-bottom:none}
+  table.datos td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;white-space:nowrap}
+  table.datos td.cen{text-align:center;white-space:nowrap}
+  table.datos td.num{text-align:center;font-weight:800;white-space:nowrap}
+  .pastilla{display:inline-block;color:#fff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:999px;white-space:nowrap}
+
+  /* ---------- kpis ---------- */
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .kpi{background:#fff;border:1px solid var(--linea);border-top:4px solid var(--azul);border-radius:11px;padding:13px}
+  .kpi .v{font-size:27px;font-weight:800;line-height:1}
+  .kpi .e{font-size:11.5px;color:var(--gris);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .barra{height:9px;border-radius:999px;overflow:hidden;display:flex;margin:6px 0 10px}
+  .barra span{display:block;height:100%}
+  .leyenda{display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--linea)}
+  .leyenda:last-child{border-bottom:none}
+  .punto-color{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+
+  /* ---------- navegación inferior ---------- */
+  nav{
+    position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linea);
+    display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:20
+  }
+  nav button{
+    flex:1;background:none;border-radius:0;padding:9px 4px 10px;font-size:10.5px;font-weight:600;
+    color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:3px
+  }
+  nav button .ic{font-size:19px;line-height:1}
+  nav button.on{color:var(--azul)}
+  nav button.on .ic{transform:translateY(-1px)}
+
+  /* ---------- overlays ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:50;
+    display:flex;align-items:center;justify-content:center;padding:18px
+  }
+  .overlay .caja{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:380px}
+  .overlay .caja h3{margin:0 0 6px;font-size:17px}
+  .overlay .caja p{margin:0 0 14px;font-size:13.5px;color:var(--gris)}
+  #overlay-escaneo{background:#000;padding:0;flex-direction:column}
+  .video-caja{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #video-escaneo{width:100%;height:100%;object-fit:cover}
+  .mira{
+    position:absolute;left:8%;right:8%;top:31%;height:27%;border:3px solid rgba(255,255,255,.95);
+    border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.42)
+  }
+  .scan-pie{
+    background:#0F2B46;color:#fff;padding:14px 14px calc(14px + env(safe-area-inset-bottom));
+    text-align:center;width:100%
+  }
+  .scan-pie .t{font-size:14px;font-weight:600}
+  .scan-pie .s{font-size:11.5px;opacity:.75;margin-top:3px}
+  .scan-pie button{margin-top:11px;background:rgba(255,255,255,.16);color:#fff;width:100%;padding:12px}
+
+  #toast{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));
+    background:#0F172A;color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;z-index:60;
+    max-width:88%;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.3)
+  }
+  .girando{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);
+    border-top-color:#fff;border-radius:50%;animation:girar .7s linear infinite;vertical-align:-2px}
+  .girando-azul{border-color:#E2E8F0;border-top-color:#0F2B46;width:18px;height:18px}
+  @keyframes girar{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="titulo-empresa">Control de Vencimientos</h1>
+  <div class="sub" id="titulo-punto">Cargando…</div>
+  <div class="punto" id="reloj"></div>
+</header>
+
+<main>
+
+  <!-- ============ REGISTRAR ============ -->
+  <section id="vista-registrar">
+    <button class="btn-azul btn-ancho btn-grande btn-scan" id="btn-escanear" style="margin-bottom:4px">
+      <span style="font-size:22px">📷</span> <span id="texto-escanear">Escanear código</span>
+    </button>
+    <div class="ayuda" id="ayuda-escanear" style="text-align:center;margin-bottom:12px"></div>
+
+    <div class="tarjeta">
+      <label for="codigo">Código de barras o código de item</label>
+      <div class="fila">
+        <input id="codigo" type="text" inputmode="text" autocomplete="off" enterkeyhint="search" placeholder="Ej. 7702001234567">
+        <button class="btn-gris" id="btn-buscar" style="flex:0 0 92px">Buscar</button>
+      </div>
+      <div class="ayuda">Si escaneas, se llena solo. También puedes escribir el código y pulsar Buscar.</div>
+      <div id="aviso-producto"></div>
+      <div id="caja-producto" class="oculto" style="margin-top:10px">
+        <div class="producto">
+          <div class="n" id="p-desc"></div>
+          <div class="m" id="p-meta"></div>
+        </div>
+        <button class="btn-gris btn-ancho" id="btn-cambiar" style="margin-top:8px;font-size:13px">Cambiar producto</button>
+      </div>
+      <div id="caja-candidatos" class="oculto" style="margin-top:10px">
+        <div class="ayuda" style="margin-bottom:6px">Varios productos coinciden. Toca el correcto:</div>
+        <div id="lista-candidatos"></div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Datos del lote</h2>
+
+      <label for="cantidad">Cantidad (unidades)</label>
+      <div class="fila">
+        <button class="btn-gris" id="btn-menos" style="flex:0 0 58px;font-size:20px">−</button>
+        <input id="cantidad" type="number" inputmode="numeric" min="1" step="1" value="1" style="text-align:center;font-size:20px;font-weight:700">
+        <button class="btn-gris" id="btn-mas" style="flex:0 0 58px;font-size:20px">+</button>
+      </div>
+
+      <label for="vencimiento">Fecha de vencimiento</label>
+      <input id="vencimiento" type="date">
+      <div class="chips" id="chips-fecha">
+        <button class="chip" data-dias="7">+7 días</button>
+        <button class="chip" data-dias="15">+15</button>
+        <button class="chip" data-dias="30">+30</button>
+        <button class="chip" data-dias="60">+60</button>
+        <button class="chip" data-dias="90">+90</button>
+      </div>
+
+      <label for="lote">Lote / Ubicación</label>
+      <input id="lote" type="text" list="lista-ubicaciones" autocomplete="off" placeholder="Ej. Lote L-2601 · Nevera 1">
+      <datalist id="lista-ubicaciones"></datalist>
+
+      <div id="caja-operador" class="oculto">
+        <label for="operador">¿Quién registra?</label>
+        <select id="operador"></select>
+      </div>
+
+      <div id="caja-gestion" class="oculto">
+        <label for="gestion">Estado del lote</label>
+        <select id="gestion">
+          <option>En bodega</option><option>En tienda</option><option>En promocion</option>
+          <option>Traslado</option><option>Vendido</option><option>Retirado</option><option>Devolucion</option>
+        </select>
+      </div>
+
+      <label for="notas">Notas (opcional)</label>
+      <textarea id="notas" placeholder="Observaciones del lote…"></textarea>
+    </div>
+
+    <button class="btn-azul btn-ancho btn-grande" id="btn-guardar">Guardar registro</button>
+    <div id="resultado" style="margin-top:12px"></div>
+  </section>
+
+  <!-- ============ LISTA ============ -->
+  <section id="vista-lista" class="oculto">
+    <div class="tarjeta">
+      <input id="busqueda" type="search" placeholder="🔎 Buscar producto, proveedor, lote…">
+      <div class="chips" id="chips-filtro" style="margin-top:9px">
+        <button class="chip on" data-filtro="criticos">🔴 Críticos</button>
+        <button class="chip" data-filtro="alertas">⚠️ En alerta</button>
+        <button class="chip" data-filtro="todos">Todos</button>
+        <button class="chip" data-filtro="vencidos">Vencidos</button>
+        <button class="chip" data-filtro="proximos">Próximos</button>
+        <button class="chip" data-filtro="vigilancia">Vigilancia</button>
+        <button class="chip" data-filtro="enregla">En regla</button>
+      </div>
+      <select id="filtro-proveedor" style="margin-top:9px"><option value="">Todos los proveedores</option></select>
+      <div id="resumen-lista" class="ayuda" style="margin-top:9px"></div>
+    </div>
+    <div id="lista-registros"></div>
+  </section>
+
+  <!-- ============ TABLA (vista plana para revisar) ============ -->
+  <section id="vista-tabla" class="oculto">
+    <div class="tarjeta">
+      <input id="busqueda-tabla" type="search" placeholder="🔎 Buscar en la tabla…">
+      <div class="chips" id="chips-tabla" style="margin-top:9px">
+        <button class="chip on" data-filtro="criticos">🔴 Críticos</button>
+        <button class="chip" data-filtro="alertas">⚠️ En alerta</button>
+        <button class="chip" data-filtro="todos">Todos</button>
+        <button class="chip" data-filtro="vencidos">Vencidos</button>
+        <button class="chip" data-filtro="proximos">Próximos</button>
+        <button class="chip" data-filtro="vigilancia">Vigilancia</button>
+        <button class="chip" data-filtro="enregla">En regla</button>
+      </div>
+      <div id="resumen-tabla" class="ayuda" style="margin-top:9px"></div>
+    </div>
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead>
+          <tr>
+            <th>Código de barras</th>
+            <th>Ítem</th>
+            <th>Desc. ítem</th>
+            <th>Vencimiento</th>
+            <th>Proveedor</th>
+            <th>Días</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-cuerpo"></tbody>
+      </table>
+    </div>
+    <div class="ayuda" id="pie-tabla" style="margin-top:9px"></div>
+  </section>
+
+  <!-- ============ PANEL ============ -->
+  <section id="vista-panel" class="oculto">
+    <div class="kpis" id="panel-kpis"></div>
+    <div class="tarjeta" id="panel-barra-caja">
+      <h2>Semáforo</h2>
+      <div class="barra" id="panel-barra"></div>
+      <div id="panel-leyenda"></div>
+    </div>
+    <div class="tarjeta">
+      <h2>Proveedores con productos activos</h2>
+      <div id="panel-proveedores"></div>
+    </div>
+    <div class="tarjeta">
+      <h2>Aplicación</h2>
+      <button class="btn-gris btn-ancho" id="btn-refrescar">🔄 Refrescar datos</button>
+      <button class="btn-gris btn-ancho oculto" id="btn-instalar" style="margin-top:8px">⬇️ Instalar en el teléfono</button>
+      <div class="ayuda oculto" id="aviso-ios"></div>
+      <div class="ayuda" id="pie-info" style="margin-top:10px"></div>
+    </div>
+    <div class="tarjeta oculto" id="caja-api">
+      <h2>Conexión</h2>
+      <label for="campo-api">Dirección de la API (Apps Script)</label>
+      <input id="campo-api" type="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec">
+      <div class="fila" style="margin-top:8px">
+        <button class="btn-gris" id="btn-guardar-api">Guardar</button>
+        <button class="btn-gris" id="btn-probar-api">Probar</button>
+      </div>
+      <div class="fila" style="margin-top:8px">
+        <button class="btn-gris" id="btn-abrir-api">Ver qué responde el servidor</button>
+      </div>
+      <div class="ayuda" id="estado-api"></div>
+      <div class="ayuda" id="api-en-uso"></div>
+      <div class="fila oculto" style="margin-top:8px" id="fila-fabrica">
+        <button class="btn-gris" id="btn-fabrica-api">Volver a la dirección de fábrica</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav>
+  <button data-vista="registrar" class="on"><span class="ic">📷</span>Registrar</button>
+  <button data-vista="lista"><span class="ic">📋</span>Lista</button>
+  <button data-vista="tabla"><span class="ic">📄</span>Tabla</button>
+  <button data-vista="panel"><span class="ic">📊</span>Panel</button>
+</nav>
+
+<!-- ============ OVERLAYS ============ -->
+<div class="overlay oculto" id="overlay-clave">
+  <div class="caja">
+    <h3>🔐 Acceso</h3>
+    <p>Escribe la clave del sistema para continuar.</p>
+    <input id="campo-clave" type="password" autocomplete="current-password" placeholder="Clave">
+    <button class="btn-azul btn-ancho" id="btn-entrar" style="margin-top:12px">Entrar</button>
+    <div id="error-clave" class="ayuda" style="color:#B91C1C;min-height:16px"></div>
+  </div>
+</div>
+
+<div class="overlay oculto" id="overlay-escaneo">
+  <div class="video-caja">
+    <video id="video-escaneo" playsinline muted autoplay></video>
+    <div class="mira"></div>
+  </div>
+  <div class="scan-pie">
+    <div class="t" id="scan-titulo">Apunta al código de barras</div>
+    <div class="s" id="scan-motor"></div>
+    <button id="btn-cerrar-escaneo">Cancelar</button>
+  </div>
+</div>
+
+<div id="toast" class="oculto"></div>
+
+<!-- Cámara nativa por foto: solo se usa cuando la app corre dentro de Apps Script,
+     donde el iframe con origen opaco bloquea getUserMedia. -->
+<input id="archivo-codigo" type="file" accept="image/*" capture="environment" class="oculto">
+
+<script>
+/* =====================================================================
+ *  FIFO · interfaz móvil. UN solo archivo, DOS formas de servirse:
+ *
+ *  1) 'gas' → dentro de Apps Script. Habla por google.script.run.
+ *     La cámara en vivo está bloqueada por el iframe de origen opaco, así
+ *     que se escanea tomando una foto con la cámara nativa del teléfono.
+ *
+ *  2) 'pwa' → instalada desde un hosting propio (Netlify, Cloudflare…).
+ *     Habla por JSONP contra la misma API del Apps Script (Apps Script no
+ *     envía cabeceras CORS, así que fetch no puede leer la respuesta).
+ *     Aquí sí hay cámara en vivo y la app es instalable.
+ *
+ *  La lógica de negocio es idéntica: en los dos casos la decide el servidor
+ *  con evaluarRegistro_(), así que la app y el correo nunca se contradicen.
+ * ===================================================================== */
+
+var MODO_APP = (typeof google !== 'undefined' && google && google.script && google.script.run) ? 'gas' : 'pwa';
+
+/* Dirección de la API. Si algún día cambia el despliegue, se puede corregir
+   desde la propia app (Panel ▸ Conexión) sin volver a compilar nada. */
+var API_POR_DEFECTO = 'https://script.google.com/macros/s/AKfycbzcm6Qx7ditGON3HtiptL-jH_JauFOy7mMFm6LtDPJ2CqE15Q1tZMqgO8RehZV3AwNH3w/exec';
+
+var EST = {
+  clave: '',
+  config: null,
+  producto: null,
+  filtro: 'criticos',
+  texto: '',
+  proveedor: '',
+  vista: 'registrar',
+  cargando: false,
+  sinConexion: false,
+  intentoFabrica: false,
+  instalable: null
+};
+
+var ZXING_URL = 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.2.1/umd/zxing-browser.min.js';
+var FORMATOS = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','codabar','qr_code','data_matrix'];
+var streamCamara = null, controlesZX = null, scanActivo = false, contadorCb = 0;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* =================== puente con el servidor =================== */
+
+function apiUrl(){
+  try { return localStorage.getItem('fifo_api') || API_POR_DEFECTO; } catch(e){ return API_POR_DEFECTO; }
+}
+
+/* ¿Hay una dirección guardada a mano en este teléfono? Si la hay, manda sobre
+   la de fábrica: por eso conviene poder verlo y poder deshacerlo. */
+function apiUrlGuardada(){
+  try { return localStorage.getItem('fifo_api') || ''; } catch(e){ return ''; }
+}
+
+/** Parte corta y reconocible de la dirección (el ID del despliegue). */
+function cortaApi(u){
+  var m = String(u || '').match(/\/macros\/s\/([^\/]+)\/exec/);
+  if (m) return m[1].slice(0, 12) + '…';
+  return String(u || '').replace(/^https?:\/\//, '').slice(0, 34);
+}
+
+/** Pinta qué dirección está usando de verdad este teléfono. */
+function mostrarApiEnUso(){
+  var guardada = apiUrlGuardada();
+  if (!$('api-en-uso')) return;
+  $('api-en-uso').textContent = guardada
+    ? 'Usando la dirección guardada en este teléfono: ' + cortaApi(guardada)
+    : 'Usando la dirección de fábrica: ' + cortaApi(API_POR_DEFECTO);
+  if ($('fila-fabrica')) $('fila-fabrica').classList.toggle('oculto', !guardada);
+}
+
+function guardarApiUrl(u){
+  try { localStorage.setItem('fifo_api', u); } catch(e){}
+}
+
+function aQuery(o){
+  return Object.keys(o).map(function(k){
+    var v = o[k];
+    if (v === null || v === undefined) v = '';
+    return encodeURIComponent(k) + '=' + encodeURIComponent(v);
+  }).join('&');
+}
+
+/**
+ * Petición JSONP. Apps Script no manda Access-Control-Allow-Origin, así que
+ * fetch no puede leer la respuesta desde otro origen (comprobado en vivo).
+ * Una etiqueta de script cargada por src no está sujeta a CORS: de ahí el rodeo.
+ */
+function jsonp(params, timeoutMs, base){
+  return new Promise(function(res, rej){
+    var nombre = 'fifo_cb_' + (++contadorCb);
+    var script = document.createElement('script');
+    var terminado = false;
+    var limpiar = function(){
+      try { delete window[nombre]; } catch(e){ window[nombre] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    };
+    window[nombre] = function(datos){
+      if (terminado) return;
+      terminado = true;
+      clearTimeout(temporizador);
+      limpiar();
+      res(datos);
+    };
+    var temporizador = setTimeout(function(){
+      if (terminado) return;
+      terminado = true;
+      limpiar();
+      rej(new Error('El servidor no respondió (' + cortaApi(base || apiUrl()) +
+        '). Revisa la conexión y la dirección de la API en Panel ▸ Conexión.'));
+    }, timeoutMs || 25000);
+    params.callback = nombre;
+    params._ = Date.now();          /* evita que un proxy devuelva una respuesta vieja */
+    script.src = (base || apiUrl()) + '?' + aQuery(params);
+    script.onerror = function(){
+      if (terminado) return;
+      terminado = true;
+      clearTimeout(temporizador);
+      limpiar();
+      rej(new Error('No se pudo contactar la API en ' + cortaApi(base || apiUrl()) +
+        '. Revisa la dirección en Panel ▸ Conexión.'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+var OP_JSONP = {
+  apiIniciar: 'iniciar',
+  apiBuscar: 'buscar',
+  apiGuardar: 'guardar',
+  apiListar: 'listar',
+  apiAccion: 'accion'
+};
+
+/**
+ * Traduce una llamada al servidor a los parámetros de la URL.
+ * Las firmas son las mismas que en Apps Script: fn(clave, a, b). Por eso el
+ * primer argumento siempre es la clave y los demás van detrás.
+ */
+function peticionJsonp(fn, clave, a, b){
+  var p = { op: OP_JSONP[fn], clave: clave };
+  if (fn === 'apiBuscar') p.texto = a;
+  else if (fn === 'apiGuardar') p.datos = JSON.stringify(a || {});
+  else if (fn === 'apiListar') p.filtros = JSON.stringify(a || {});
+  else if (fn === 'apiAccion'){ p.id = a; p.que = b; }
+  return jsonp(p);
+}
+
+/**
+ * Llamada al servidor. google.script.run no admite apply(), así que en ese
+ * modo hay que llamar con los argumentos explícitos.
+ */
+function servidor(fn, a, b, c){
+  if (MODO_APP === 'pwa') return peticionJsonp(fn, a, b, c);
+  return new Promise(function(res, rej){
+    var runner = google.script.run
+      .withSuccessHandler(res)
+      .withFailureHandler(function(e){ rej(new Error((e && e.message) || 'Fallo de comunicación')); });
+    if (typeof c !== 'undefined') runner[fn](a, b, c);
+    else if (typeof b !== 'undefined') runner[fn](a, b);
+    else if (typeof a !== 'undefined') runner[fn](a);
+    else runner[fn]();
+  });
+}
+
+function revisar(r){
+  if (r && r.requiereClave){ pedirClave(); throw new Error('clave'); }
+  if (!r || r.ok !== true) throw new Error((r && r.error) || 'Respuesta inesperada del servidor');
+  return r;
+}
+
+function toast(msg, ms){
+  var t = $('toast');
+  t.textContent = msg;
+  t.classList.remove('oculto');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.add('oculto'); }, ms || 2600);
+}
+
+/* =================== clave de acceso =================== */
+
+function pedirClave(){
+  $('overlay-clave').classList.remove('oculto');
+  setTimeout(function(){ try { $('campo-clave').focus(); } catch(e){} }, 220);
+}
+
+function guardarClave(v){
+  EST.clave = v;
+  try { localStorage.setItem('fifo_clave', v); } catch(e){}
+}
+
+function leerClaveGuardada(){
+  try { return localStorage.getItem('fifo_clave') || ''; } catch(e){ return ''; }
+}
+
+/* =================== arranque =================== */
+
+function iniciar(){
+  $('reloj').textContent = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short' });
+  EST.clave = leerClaveGuardada();
+  configurarModo();
+  arrancarSesion();
+}
+
+function configurarModo(){
+  if (MODO_APP === 'pwa'){
+    $('texto-escanear').textContent = 'Escanear código';
+    $('ayuda-escanear').textContent = 'Cámara en vivo · también puedes escribir el código';
+    $('caja-api').classList.remove('oculto');
+    $('campo-api').value = apiUrl();
+    mostrarApiEnUso();
+    var l = document.createElement('link'); l.rel = 'manifest'; l.href = 'manifest.json';
+    document.head.appendChild(l);
+    var ic = document.createElement('link'); ic.rel = 'apple-touch-icon'; ic.href = 'icono-180.png';
+    document.head.appendChild(ic);
+    if ('serviceWorker' in navigator){
+      window.addEventListener('load', function(){
+        navigator.serviceWorker.register('sw.js').catch(function(){ /* se usa sin caché */ });
+      });
+    }
+    window.addEventListener('beforeinstallprompt', function(e){
+      e.preventDefault();
+      EST.instalable = e;
+      $('btn-instalar').classList.remove('oculto');
+    });
+    if (esIOS() && !esInstalada()){
+      $('aviso-ios').classList.remove('oculto');
+      $('aviso-ios').textContent = 'En iPhone: Safari ▸ Compartir ▸ Añadir a pantalla de inicio.';
+    }
+  } else {
+    $('texto-escanear').textContent = 'Escanear (foto)';
+    $('ayuda-escanear').textContent = 'Abre la cámara del teléfono y toma una foto del código';
+  }
+  pintarPieInfo();
+}
+
+function pintarPieInfo(){
+  $('pie-info').textContent = 'Modo: ' + (MODO_APP === 'gas' ? 'app de Apps Script' : 'app instalable') +
+    (MODO_APP === 'pwa' ? ' · API ' + cortaApi(apiUrl()) : '');
+}
+
+function esIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function esInstalada(){
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    navigator.standalone === true;
+}
+
+/** El servidor contestó: o entra, o pide la clave. */
+function sesionIniciada(r){
+  EST.intentoFabrica = false;
+  if (r && r.requiereClave){
+    $('overlay-clave').classList.remove('oculto');
+    $('error-clave').textContent =
+      (r.error && r.error !== 'Clave incorrecta') ? r.error : 'Clave incorrecta o no configurada';
+    return;
+  }
+  revisar(r);
+  EST.config = r;
+  EST.sinConexion = false;
+  pintarConfig(r);
+  $('overlay-clave').classList.add('oculto');
+  $('error-clave').textContent = '';
+  fechaPorDefecto();
+  cargarLista();
+}
+
+/** No hubo forma de hablar con el servidor: avisar y llevar directo a Conexión. */
+function falloDeConexion(e, nota){
+  EST.sinConexion = true;
+  toast('No se pudo iniciar: ' + e.message, 6000);
+  /* Sin conexión lo más probable es que la dirección esté desactualizada:
+     llevamos al usuario directo al único sitio donde se corrige. */
+  if ($('estado-api')){
+    $('estado-api').className = 'ayuda malo';
+    $('estado-api').textContent = '✖ ' + e.message + (nota ? ' ' + nota : '');
+    $('campo-api').value = apiUrl();
+    mostrarApiEnUso();
+  }
+  irA('panel');
+}
+
+/**
+ * Arranque. Si la dirección guardada a mano en este teléfono no responde,
+ * prueba la de fábrica antes de rendirse: así un teléfono que quedó apuntando a
+ * un despliegue viejo se arregla solo, sin que nadie toque nada.
+ */
+function arrancarSesion(){
+  return servidor('apiIniciar', EST.clave).then(sesionIniciada).catch(function(e){
+    if (e.message === 'clave') return;
+    var guardada = apiUrlGuardada();
+    if (guardada && guardada !== API_POR_DEFECTO && !EST.intentoFabrica){
+      EST.intentoFabrica = true;
+      try { localStorage.removeItem('fifo_api'); } catch(err){}
+      if ($('campo-api')) $('campo-api').value = API_POR_DEFECTO;
+      mostrarApiEnUso();
+      pintarPieInfo();
+      return servidor('apiIniciar', EST.clave).then(function(r){
+        if ($('estado-api')){
+          $('estado-api').className = 'ayuda ok';
+          $('estado-api').textContent =
+            '✔ La dirección guardada no respondía; seguí con la de fábrica (' + cortaApi(API_POR_DEFECTO) + ').';
+        }
+        sesionIniciada(r);
+      }).catch(function(e2){
+        try { localStorage.setItem('fifo_api', guardada); } catch(err){}
+        mostrarApiEnUso();
+        pintarPieInfo();
+        falloDeConexion(e2, '(también probé la de fábrica)');
+      });
+    }
+    falloDeConexion(e);
+  });
+}
+
+/** El arranque tarda un par de segundos: el botón lo dice en vez de quedarse mudo. */
+function entrar(){
+  var b = $('btn-entrar');
+  b.disabled = true;
+  b.innerHTML = '<span class="girando"></span> Entrando…';
+  var restaurar = function(){ b.disabled = false; b.textContent = 'Entrar'; };
+  var p = arrancarSesion();
+  if (p && p.then) p.then(restaurar, restaurar); else restaurar();
+}
+
+function pintarConfig(c){
+  $('titulo-empresa').textContent = c.empresa || 'Control de Vencimientos';
+  $('titulo-punto').textContent = (c.punto ? c.punto + ' · ' : '') + 'Próximo a vencer: ' + c.diasProximo + ' días';
+  var dl = $('lista-ubicaciones');
+  dl.innerHTML = '';
+  (c.ubicaciones || []).forEach(function(u){
+    var o = document.createElement('option'); o.value = u; dl.appendChild(o);
+  });
+  if ((c.operadores || []).length){
+    $('caja-operador').classList.remove('oculto');
+    var s = $('operador'); s.innerHTML = '';
+    c.operadores.forEach(function(n){ var o = document.createElement('option'); o.textContent = n; s.appendChild(o); });
+  }
+  if ((c.ubicaciones || []).length) $('lote').value = c.ubicaciones[0];
+}
+
+function fechaPorDefecto(){
+  var d = new Date(); d.setDate(d.getDate() + (EST.config ? EST.config.diasProximo : 30));
+  $('vencimiento').value = aISO(d);
+}
+
+function aISO(d){
+  var m = ('0' + (d.getMonth() + 1)).slice(-2);
+  var dd = ('0' + d.getDate()).slice(-2);
+  return d.getFullYear() + '-' + m + '-' + dd;
+}
+
+/* =================== navegación =================== */
+
+function irA(vista){
+  EST.vista = vista;
+  ['registrar','lista','tabla','panel'].forEach(function(v){
+    $('vista-' + v).classList.toggle('oculto', v !== vista);
+  });
+  var botones = document.querySelectorAll('nav button');
+  for (var i = 0; i < botones.length; i++){
+    botones[i].classList.toggle('on', botones[i].getAttribute('data-vista') === vista);
+  }
+  if (vista !== 'registrar') cerrarEscaner();
+  if (vista === 'panel' || vista === 'lista' || vista === 'tabla') cargarLista();
+  window.scrollTo(0, 0);
+}
+
+/** Deja los dos juegos de chips (Lista y Tabla) marcando el mismo filtro. */
+function sincronizarChips(){
+  document.querySelectorAll('#chips-filtro .chip, #chips-tabla .chip').forEach(function(o){
+    o.classList.toggle('on', o.getAttribute('data-filtro') === EST.filtro);
+  });
+}
+
+/** Deja los dos buscadores (Lista y Tabla) con el mismo texto. */
+function sincronizarBusquedas(valor){
+  if ($('busqueda').value !== valor) $('busqueda').value = valor;
+  if ($('busqueda-tabla').value !== valor) $('busqueda-tabla').value = valor;
+}
+
+/* =================== producto =================== */
+
+/** Secuencias: si el usuario toca dos veces seguidas, la respuesta lenta de la
+    primera petición no debe pintar la pantalla por encima de la última. */
+var secuenciaLista = 0;
+var secuenciaBusqueda = 0;
+
+function buscarProducto(texto){
+  if (!texto) return;
+  var mio = ++secuenciaBusqueda;
+  /* El servidor tarda ~2 s: se avisa en el hueco del aviso de producto. */
+  $('aviso-producto').innerHTML = '<div class="ayuda">Buscando ' + esc(texto) + '…</div>';
+  return servidor('apiBuscar', EST.clave, texto).then(function(r){
+    revisar(r);
+    if (mio !== secuenciaBusqueda) return;      /* llegó tarde: hay una búsqueda más nueva */
+    ocultarCajas();
+    if (r.tipo === 'unico' && r.producto){
+      fijarProducto(r.producto);
+    } else if (r.tipo === 'varios'){
+      pintarCandidatos(r.candidatos);
+    } else {
+      $('aviso-producto').innerHTML = '<div class="aviso">⚠️ El código <b>' + esc(texto) +
+        '</b> no está en el catálogo. Puedes registrar igualmente escribiendo el nombre, o agregarlo a la hoja CATALOGO.</div>';
+      EST.producto = null;
+    }
+  }).catch(function(e){
+    if (mio !== secuenciaBusqueda) return;
+    $('aviso-producto').innerHTML = '';      /* quita el "Buscando…" */
+    if (e.message !== 'clave') toast('No se pudo buscar: ' + e.message, 3600);
+  });
+}
+
+function ocultarCajas(){
+  $('aviso-producto').innerHTML = '';
+  $('caja-producto').classList.add('oculto');
+  $('caja-candidatos').classList.add('oculto');
+}
+
+function fijarProducto(p){
+  EST.producto = p;
+  $('p-desc').textContent = p.desc_item || p.item;
+  $('p-meta').textContent = [p.item, p.referencia, p.proveedor, p.codigo_barra_principal]
+    .filter(function(x){ return x; }).join(' · ');
+  $('caja-producto').classList.remove('oculto');
+  $('caja-candidatos').classList.add('oculto');
+  $('aviso-producto').innerHTML = '';
+}
+
+function pintarCandidatos(lista){
+  var caja = $('lista-candidatos');
+  caja.innerHTML = '';
+  (lista || []).forEach(function(p){
+    var b = document.createElement('button');
+    b.className = 'btn-gris btn-ancho';
+    b.style.textAlign = 'left';
+    b.style.marginBottom = '6px';
+    b.innerHTML = '<b>' + esc(p.desc_item || p.item) + '</b><br><span style="font-size:11.5px;color:#64748B">' +
+      esc([p.item, p.referencia, p.proveedor].filter(function(x){ return x; }).join(' · ')) + '</span>';
+    b.onclick = function(){ fijarProducto(p); };
+    caja.appendChild(b);
+  });
+  $('caja-candidatos').classList.remove('oculto');
+}
+
+/* =================== guardar =================== */
+
+function guardar(){
+  if (EST.cargando) return;
+  var codigo = $('codigo').value.trim();
+  var item = EST.producto ? EST.producto.item : '';
+  if (!codigo && !item){ toast('Escanea o escribe un código primero'); $('codigo').focus(); return; }
+  var cantidad = parseInt($('cantidad').value, 10);
+  if (!(cantidad > 0)){ toast('La cantidad debe ser mayor que cero'); return; }
+  if (!$('vencimiento').value){ toast('Falta la fecha de vencimiento'); return; }
+
+  var datos = {
+    codigo: codigo,
+    item: item,
+    cantidad: cantidad,
+    fecha_vencimiento: $('vencimiento').value,
+    lote: $('lote').value.trim(),
+    estado_gestion: $('gestion').value || 'En bodega',
+    notas: $('notas').value.trim(),
+    operador: $('caja-operador').classList.contains('oculto') ? '' : $('operador').value
+  };
+
+  EST.cargando = true;
+  var b = $('btn-guardar');
+  b.disabled = true;
+  b.innerHTML = '<span class="girando"></span> Guardando…';
+
+  servidor('apiGuardar', EST.clave, datos).then(function(r){
+    revisar(r);
+    pintarResultado(r);
+    if (navigator.vibrate) navigator.vibrate(60);
+    /* preparado para el siguiente: la fecha y la ubicación suelen repetirse */
+    $('codigo').value = '';
+    $('cantidad').value = 1;
+    $('notas').value = '';
+    EST.producto = null;
+    ocultarCajas();
+    cargarLista();
+  }).catch(function(e){
+    if (e.message !== 'clave') toast('No se pudo guardar: ' + e.message, 4200);
+  }).then(function(){
+    EST.cargando = false;
+    b.disabled = false;
+    b.textContent = 'Guardar registro';
+  });
+}
+
+function pintarResultado(r){
+  $('resultado').innerHTML =
+    '<div class="reg" style="border-left-color:' + esc(r.color) + ';background:' + esc(r.fondo) + '">' +
+      '<div class="top"><div><div class="desc">' + esc(r.desc) + '</div>' +
+      '<div class="meta">' + esc(r.cantidad) + ' unidades · ' + esc(r.proveedor || 'sin proveedor') +
+      ' · vence ' + esc(r.fechaTexto) + '</div></div>' +
+      '<div class="dias" style="color:' + esc(r.color) + '">' + esc(r.diasTexto) + '</div></div>' +
+      '<div class="estado" style="background:' + esc(r.color) + '">' + esc(r.icono) + ' ' + esc(r.estado) + '</div>' +
+    '</div>';
+  toast('✔ Registrado: ' + r.diasTexto);
+}
+
+/* =================== lista =================== */
+
+function cargarLista(){
+  var mio = ++secuenciaLista;
+  var caja = $('lista-registros');
+  /* El servidor tarda uno o dos segundos (en frío, más). Si todavía no hay nada
+     pintado se avisa, para que nadie crea que la app está vacía o rota. */
+  if (!caja.querySelector('.reg')){
+    $('resumen-lista').textContent = 'Cargando…';
+    caja.innerHTML = '<div class="vacio"><span class="girando girando-azul"></span><br>Cargando datos…</div>';
+  }
+  if (!$('tabla-cuerpo').querySelector('td.mono')){
+    $('resumen-tabla').textContent = 'Cargando…';
+    $('tabla-cuerpo').innerHTML = '<tr><td colspan="7" class="vacio"><span class="girando girando-azul"></span><br>Cargando datos…</td></tr>';
+  }
+  return servidor('apiListar', EST.clave, { estado: EST.filtro, texto: EST.texto, proveedor: EST.proveedor })
+    .then(function(r){
+      revisar(r);
+      EST.sinConexion = false;
+      if (mio !== secuenciaLista) return;       /* llegó tarde: ya se pidió una lista más nueva */
+      pintarKPIs(r.kpis);
+      pintarProveedores(r.proveedores || []);
+      pintarRegistros(r);
+      pintarTabla(r);
+    }).catch(function(e){
+      if (mio !== secuenciaLista) return;
+      var faltaClave = (e.message === 'clave');
+      if (!caja.querySelector('.reg')){
+        $('resumen-lista').textContent = '';
+        caja.innerHTML = '<div class="vacio">' + (faltaClave
+          ? '🔐<br>Escribe la clave para ver los lotes.'
+          : '⚠️<br>No se pudieron cargar los datos.<br>' +
+            '<span style="font-size:12px">' + esc(e.message) + '</span>') + '</div>';
+      }
+      if (!$('tabla-cuerpo').querySelector('td.mono')){
+        $('resumen-tabla').textContent = '';
+        $('tabla-cuerpo').innerHTML = '<tr><td colspan="7" class="vacio">' + (faltaClave
+          ? '🔐<br>Escribe la clave para ver la tabla.'
+          : '⚠️<br>No se pudieron cargar los datos.<br>' +
+            '<span style="font-size:12px">' + esc(e.message) + '</span>') + '</td></tr>';
+      }
+      /* Si el arranque ya avisó de que no hay conexión, no repetimos el aviso. */
+      if (!faltaClave && !EST.sinConexion) toast('No se pudo cargar la lista: ' + e.message, 3600);
+    });
+}
+
+function pintarKPIs(k){
+  if (!k) return;
+  var tarjetas = [
+    { v: k.vencidos || 0,  e: 'Vencidos',        c: '#B91C1C' },
+    { v: k.alertas || 0,   e: 'En alerta',       c: '#BE123C' },
+    { v: k.unidadesCriticas || 0, e: 'Unidades críticas', c: '#A16207' },
+    { v: k.activos || 0,   e: 'Lotes activos',   c: '#0F2B46' }
+  ];
+  $('panel-kpis').innerHTML = tarjetas.map(function(t){
+    return '<div class="kpi" style="border-top-color:' + t.c + '"><div class="v" style="color:' + t.c + '">' +
+      t.v + '</div><div class="e">' + t.e + '</div></div>';
+  }).join('');
+
+  var partes = [
+    { n: k.vencidos || 0,   c: '#B91C1C', t: 'Vencidos' },
+    { n: k.alertas || 0,    c: '#BE123C', t: 'En alerta (' + (k.diasAlerta ? k.diasAlerta : '3, 8, 15, 30') + ')' },
+    { n: k.proximos || 0,   c: '#C2410C', t: 'Próximos a vencer' },
+    { n: k.vigilancia || 0, c: '#A16207', t: 'Vigilancia' },
+    { n: k.enRegla || 0,    c: '#15803D', t: 'En regla' },
+    { n: k.sinFecha || 0,   c: '#64748B', t: 'Sin fecha' }
+  ];
+  var total = Math.max(1, k.activos);
+  $('panel-barra').innerHTML = partes.map(function(p){
+    return p.n > 0 ? '<span style="width:' + (p.n * 100 / total) + '%;background:' + p.c + '"></span>' : '';
+  }).join('');
+  $('panel-leyenda').innerHTML = partes.map(function(p){
+    return '<div class="leyenda"><span class="punto-color" style="background:' + p.c + '"></span>' +
+      '<span style="flex:1">' + p.t + '</span><b>' + p.n + '</b></div>';
+  }).join('');
+}
+
+function pintarProveedores(lista){
+  $('panel-proveedores').innerHTML = lista.length
+    ? lista.map(function(p){ return '<div class="leyenda">🏭 <span style="flex:1">' + esc(p) + '</span></div>'; }).join('')
+    : '<div class="ayuda">Sin datos todavía.</div>';
+  var sel = $('filtro-proveedor');
+  var actual = EST.proveedor;
+  sel.innerHTML = '<option value="">Todos los proveedores</option>' +
+    lista.map(function(p){ return '<option value="' + esc(p) + '">' + esc(p) + '</option>'; }).join('');
+  sel.value = actual;
+}
+
+function pintarRegistros(r){
+  var caja = $('lista-registros');
+  $('resumen-lista').textContent = r.total === 0
+    ? 'Sin resultados con este filtro.'
+    : r.total + (r.total === 1 ? ' lote' : ' lotes') + (r.total > 300 ? ' (mostrando 300)' : '');
+
+  if (!r.registros.length){
+    caja.innerHTML = '<div class="vacio">📭<br>No hay lotes que coincidan con el filtro.</div>';
+    return;
+  }
+
+  caja.innerHTML = r.registros.map(function(x){
+    var botones = '';
+    if (x.gestion !== 'Vendido' && x.gestion !== 'Retirado'){
+      botones += '<button class="btn-verde" data-accion="vender" data-id="' + esc(x.id) + '">✔ Vender</button>';
+      botones += '<button class="btn-rojo" data-accion="retirar" data-id="' + esc(x.id) + '">⛔ Retirar</button>';
+    }
+    return '<div class="reg" style="border-left-color:' + esc(x.color) + '">' +
+      '<div class="top">' +
+        '<div><div class="desc">' + esc(x.desc) + '</div>' +
+        '<div class="meta">' + esc(x.cantidad) + ' u · ' + esc(x.proveedor) +
+          (x.lote ? ' · ' + esc(x.lote) : '') + '</div>' +
+        '<div class="meta">Vence ' + esc(x.fechaTexto) + (x.gestion ? ' · ' + esc(x.gestion) : '') + '</div>' +
+        '<div class="estado" style="background:' + esc(x.color) + '">' + esc(x.icono) + ' ' + esc(x.estado) + '</div>' +
+        '</div>' +
+        '<div class="dias" style="color:' + esc(x.color) + '">' + esc(x.diasTexto) + '</div>' +
+      '</div>' +
+      (botones ? '<div class="acciones">' + botones + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+/** Tabla plana: código de barras, ítem, descripción, vencimiento, proveedor, días y estado. */
+function pintarTabla(r){
+  var cuerpo = $('tabla-cuerpo');
+  $('resumen-tabla').textContent = r.total === 0
+    ? 'Sin resultados con este filtro.'
+    : r.total + (r.total === 1 ? ' lote' : ' lotes') + (r.total > 300 ? ' (mostrando 300)' : '') +
+      ' · ordenados por días restantes';
+
+  if (!r.registros.length){
+    cuerpo.innerHTML = '<tr><td colspan="7" class="vacio">📭<br>No hay lotes que coincidan con el filtro.</td></tr>';
+    return;
+  }
+
+  cuerpo.innerHTML = r.registros.map(function(x){
+    return '<tr>' +
+      '<td class="mono">' + esc(x.codigoBarra || '—') + '</td>' +
+      '<td class="mono">' + esc(x.item || '—') + '</td>' +
+      '<td>' + esc(x.desc) + '</td>' +
+      '<td class="cen">' + esc(x.fechaTexto) + '</td>' +
+      '<td>' + esc(x.proveedor) + '</td>' +
+      '<td class="num" style="background:' + esc(x.fondo) + ';color:' + esc(x.color) + '">' +
+        (x.dias === null || x.dias === undefined ? '—' : esc(x.dias)) + '</td>' +
+      '<td class="cen"><span class="pastilla" style="background:' + esc(x.color) + '">' +
+        esc(x.icono) + ' ' + esc(x.estado) + '</span></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function accion(id, cual){
+  servidor('apiAccion', EST.clave, id, cual).then(function(r){
+    revisar(r);
+    toast('Actualizado: ' + r.estado_gestion);
+    cargarLista();
+  }).catch(function(e){ if (e.message !== 'clave') toast('No se pudo actualizar: ' + e.message, 3600); });
+}
+
+/* =================== escáner =================== */
+
+function abrirEscaner(){
+  /* En la app instalada hay origen propio: cámara en vivo.
+     Dentro de Apps Script el iframe de origen opaco la bloquea, así que se
+     usa la cámara nativa del teléfono a través de un input de archivo. */
+  if (MODO_APP === 'pwa') abrirEscanerEnVivo();
+  else abrirCamaraFoto();
+}
+
+function abrirCamaraFoto(){
+  var input = $('archivo-codigo');
+  input.value = '';
+  input.click();
+}
+
+function leerFoto(archivo){
+  if (!archivo) return;
+  toast('Leyendo el código…', 6000);
+  var url = URL.createObjectURL(archivo);
+  var img = new Image();
+  img.onload = function(){
+    decodificarFuente(img).then(function(texto){
+      try { URL.revokeObjectURL(url); } catch(e){}
+      if (texto) exitoEscaneo(texto);
+      else toast('No se pudo leer el código. Acerca la cámara al código y vuelve a intentar, o escríbelo a mano.', 4600);
+    });
+  };
+  img.onerror = function(){
+    try { URL.revokeObjectURL(url); } catch(e){}
+    toast('No se pudo abrir la foto. Intenta de nuevo.');
+  };
+  img.src = url;
+}
+
+/** Decodifica una imagen o un video: primero el lector nativo, luego ZXing. */
+function decodificarFuente(fuente){
+  return new Promise(function(res){
+    if (typeof BarcodeDetector === 'undefined'){ res(null); return; }
+    var det;
+    try { det = new BarcodeDetector({ formats: FORMATOS }); }
+    catch(e){ try { det = new BarcodeDetector(); } catch(e2){ res(null); return; } }
+    det.detect(fuente)
+      .then(function(c){ res(c && c.length ? c[0].rawValue : null); })
+      .catch(function(){ res(null); });
+  }).then(function(texto){
+    if (texto) return texto;
+    return decodificarConZXing(fuente);   /* el nativo no vio nada: se intenta ZXing */
+  });
+}
+
+function cargarZXing(){
+  if (window.ZXingBrowser || window.ZXing) return Promise.resolve();
+  return new Promise(function(res, rej){
+    var s = document.createElement('script');
+    s.src = ZXING_URL;
+    s.onload = function(){ res(); };
+    s.onerror = function(){ rej(new Error('no se pudo cargar el lector')); };
+    document.head.appendChild(s);
+  });
+}
+
+function decodificarConZXing(fuente){
+  return cargarZXing().then(function(){
+    var ZX = window.ZXingBrowser || window.ZXing;
+    var Lector = ZX.BrowserMultiFormatReader || ZX.BrowserCodeReader;
+    if (!Lector) return null;
+    var lector = new Lector();
+    var esImagen = fuente && fuente.tagName && fuente.tagName.toLowerCase() === 'img';
+    var tarea = esImagen
+      ? lector.decodeFromImageElement(fuente)
+      : lector.decodeFromVideoElement(fuente);
+    return tarea.then(function(r){ return r ? r.getText() : null; });
+  }).catch(function(){ return null; });
+}
+
+/* ---------- cámara en vivo (solo app instalada) ---------- */
+
+function abrirEscanerEnVivo(){
+  $('overlay-escaneo').classList.remove('oculto');
+  $('scan-titulo').textContent = 'Apunta al código de barras';
+  $('scan-motor').textContent = '';
+  scanActivo = true;
+  var video = $('video-escaneo');
+
+  if (typeof BarcodeDetector !== 'undefined'){
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+      .then(function(s){
+        streamCamara = s;
+        video.srcObject = s;
+        return video.play();
+      })
+      .then(function(){
+        $('scan-motor').textContent = 'Lector del teléfono';
+        bucleNativo(video);
+      })
+      .catch(function(e){ falloCamara(video, e); });
+  } else {
+    $('scan-motor').textContent = 'Cargando lector…';
+    escanearConZXing(video);
+  }
+}
+
+function falloCamara(video, e){
+  var mensaje = String((e && e.name) || '') + ' ' + String((e && e.message) || '');
+  if (/NotAllowed|Permission|policy/i.test(mensaje)){
+    $('scan-motor').textContent = 'El navegador bloqueó la cámara. Revisa los permisos del sitio (candado 🔒 en la barra de direcciones). Mientras tanto, escribe el código a mano.';
+  } else {
+    $('scan-motor').textContent = 'Sin cámara: ' + mensaje + '. Escribe el código a mano.';
+  }
+  scanActivo = false;
+}
+
+function bucleNativo(video){
+  var det;
+  try { det = new BarcodeDetector({ formats: FORMATOS }); }
+  catch(e){ try { det = new BarcodeDetector(); } catch(e2){ escanearConZXing(video); return; } }
+  var tic = function(){
+    if (!scanActivo) return;
+    det.detect(video).then(function(codigos){
+      if (!scanActivo) return;
+      if (codigos && codigos.length && codigos[0].rawValue){ exitoEscaneo(codigos[0].rawValue); return; }
+      setTimeout(tic, 180);
+    }).catch(function(){ setTimeout(tic, 260); });
+  };
+  tic();
+}
+
+function escanearConZXing(video){
+  cargarZXing().then(function(){
+    var ZX = window.ZXingBrowser || window.ZXing;
+    var Lector = ZX.BrowserMultiFormatReader || ZX.BrowserCodeReader;
+    if (!Lector) throw new Error('lector no disponible');
+    var lector = new Lector();
+    $('scan-motor').textContent = 'Lector alternativo (ZXing)';
+    return lector.decodeFromVideoDevice(undefined, video, function(res, err, ctrls){
+      if (ctrls) controlesZX = ctrls;
+      if (res && res.getText()) exitoEscaneo(res.getText());
+    });
+  }).catch(function(e){
+    $('scan-motor').textContent = 'Sin cámara: ' + e.message + '. Escribe el código a mano.';
+    scanActivo = false;
+  });
+}
+
+function exitoEscaneo(texto){
+  scanActivo = false;
+  if (navigator.vibrate) navigator.vibrate(45);
+  cerrarEscaner();
+  var limpio = String(texto).trim();
+  $('codigo').value = limpio;
+  buscarProducto(limpio);
+}
+
+function cerrarEscaner(){
+  scanActivo = false;
+  $('overlay-escaneo').classList.add('oculto');
+  if (controlesZX){ try { controlesZX.stop(); } catch(e){} controlesZX = null; }
+  if (streamCamara){
+    try { streamCamara.getTracks().forEach(function(t){ t.stop(); }); } catch(e){}
+    streamCamara = null;
+  }
+  var v = $('video-escaneo');
+  try { v.pause(); v.srcObject = null; } catch(e){}
+}
+
+/* =================== conexión con la API =================== */
+
+function probarApi(){
+  var u = $('campo-api').value.trim();
+  $('estado-api').className = 'ayuda';
+  $('estado-api').textContent = 'Probando…';
+  jsonp({ op: 'iniciar', clave: EST.clave }, 12000, u).then(function(r){
+    if (r && r.ok){
+      $('estado-api').className = 'ayuda ok';
+      $('estado-api').textContent = '✔ Conectado con ' + (r.empresa || 'la hoja');
+    } else if (r && r.requiereClave){
+      $('estado-api').className = 'ayuda malo';
+      $('estado-api').textContent = 'La API responde, pero la clave no es válida.';
+    } else {
+      $('estado-api').className = 'ayuda malo';
+      $('estado-api').textContent = 'Respondió algo inesperado';
+    }
+  }).catch(function(e){
+    $('estado-api').className = 'ayuda malo';
+    $('estado-api').textContent = '✖ ' + e.message;
+  });
+}
+
+/* =================== eventos =================== */
+
+document.addEventListener('DOMContentLoaded', function(){
+  iniciar();
+
+  document.querySelectorAll('nav button').forEach(function(b){
+    b.onclick = function(){ irA(b.getAttribute('data-vista')); };
+  });
+
+  $('btn-entrar').onclick = function(){
+    var v = $('campo-clave').value.trim();
+    if (!v) return;
+    guardarClave(v);
+    entrar();
+  };
+  $('campo-clave').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('btn-entrar').click(); });
+
+  $('btn-escanear').onclick = abrirEscaner;
+  $('btn-cerrar-escaneo').onclick = cerrarEscaner;
+  $('archivo-codigo').addEventListener('change', function(e){
+    leerFoto(e.target.files && e.target.files[0]);
+  });
+  $('btn-buscar').onclick = function(){ buscarProducto($('codigo').value.trim()); };
+  $('codigo').addEventListener('keydown', function(e){ if (e.key === 'Enter') buscarProducto($('codigo').value.trim()); });
+  $('btn-cambiar').onclick = function(){
+    EST.producto = null;
+    ocultarCajas();
+    $('codigo').value = '';
+    $('codigo').focus();
+  };
+
+  $('btn-menos').onclick = function(){
+    var v = parseInt($('cantidad').value, 10) || 1;
+    $('cantidad').value = Math.max(1, v - 1);
+  };
+  $('btn-mas').onclick = function(){
+    var v = parseInt($('cantidad').value, 10) || 0;
+    $('cantidad').value = v + 1;
+  };
+
+  document.querySelectorAll('#chips-fecha .chip').forEach(function(c){
+    c.onclick = function(){
+      var d = new Date();
+      d.setDate(d.getDate() + parseInt(c.getAttribute('data-dias'), 10));
+      $('vencimiento').value = aISO(d);
+      document.querySelectorAll('#chips-fecha .chip').forEach(function(o){ o.classList.remove('on'); });
+      c.classList.add('on');
+    };
+  });
+
+  $('btn-guardar').onclick = guardar;
+
+  document.querySelectorAll('#chips-filtro .chip, #chips-tabla .chip').forEach(function(c){
+    c.onclick = function(){
+      EST.filtro = c.getAttribute('data-filtro');
+      sincronizarChips();
+      cargarLista();
+    };
+  });
+
+  $('pie-tabla').textContent = 'Los mismos filtros de la Lista se aplican aquí. Para vender o retirar un lote, usa la Lista.';
+
+  var deb;
+  function buscarDesde(valor){
+    clearTimeout(deb);
+    deb = setTimeout(function(){
+      EST.texto = valor.trim();
+      sincronizarBusquedas(EST.texto);
+      cargarLista();
+    }, 420);
+  }
+  $('busqueda').addEventListener('input', function(){ buscarDesde($('busqueda').value); });
+  $('busqueda-tabla').addEventListener('input', function(){ buscarDesde($('busqueda-tabla').value); });
+
+  $('filtro-proveedor').addEventListener('change', function(){
+    EST.proveedor = $('filtro-proveedor').value;
+    cargarLista();
+  });
+
+  $('btn-refrescar').onclick = function(){ cargarLista(); toast('Datos actualizados'); };
+
+  $('btn-instalar').onclick = function(){
+    if (!EST.instalable){ toast('Usa el menú del navegador ▸ Añadir a pantalla de inicio'); return; }
+    EST.instalable.prompt();
+    EST.instalable = null;
+  };
+
+  $('btn-guardar-api').onclick = function(){
+    var u = $('campo-api').value.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/(exec|dev)$/.test(u)){
+      $('estado-api').className = 'ayuda malo';
+      $('estado-api').textContent = 'La dirección debe empezar por https://script.google.com/macros/s/ y terminar en /exec';
+      return;
+    }
+    guardarApiUrl(u);
+    EST.intentoFabrica = false;
+    $('estado-api').className = 'ayuda ok';
+    $('estado-api').textContent = '✔ Guardada. Reconectando…';
+    configurarModo();
+    arrancarSesion();
+  };
+  $('btn-probar-api').onclick = probarApi;
+
+  /* Diagnóstico a distancia: abre en el navegador la dirección tal cual, para
+     ver con los propios ojos qué contesta el servidor en ESTE teléfono. */
+  $('btn-abrir-api').onclick = function(){
+    var u = $('campo-api').value.trim() || apiUrl();
+    window.open(u + (u.indexOf('?') === -1 ? '?' : '&') + 'op=iniciar&callback=prueba', '_blank');
+  };
+
+  /* Deshace una dirección guardada a mano (por ejemplo si el despliegue cambió
+     y en este teléfono quedó la vieja apuntada). */
+  $('btn-fabrica-api').onclick = function(){
+    try { localStorage.removeItem('fifo_api'); } catch(e){}
+    EST.intentoFabrica = false;
+    $('campo-api').value = API_POR_DEFECTO;
+    $('estado-api').className = 'ayuda ok';
+    $('estado-api').textContent = '✔ Dirección de fábrica restaurada. Reconectando…';
+    mostrarApiEnUso();
+    pintarPieInfo();
+    arrancarSesion();
+  };
+
+  /* acciones de la lista (delegación de eventos) */
+  $('lista-registros').addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button[data-accion]') : null;
+    if (!b) return;
+    accion(b.getAttribute('data-id'), b.getAttribute('data-accion'));
+  });
+});
+</script>
+</body>
+</html>

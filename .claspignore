@@ -1,0 +1,12 @@
+# clasp sube TODO lo que esté en rootDir (apps-script/). Aquí se excluye lo que
+# no debe llegar al proyecto de Google:
+#   - FIFO_UnArchivo.gs : es el bundle generado (duplicaría todas las funciones)
+#   - preview-ejemplo.html : correo de muestra, no es una plantilla del proyecto
+#   - README.md : documentación local
+#
+# Sintaxis tipo .gitignore: primero se ignora todo y luego se permite lo justo.
+**/**
+!Code.gs
+!ReporteHTML.html
+!AppMovil.html
+!appsscript.json

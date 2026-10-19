@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de Vencimientos</title>
+</head>
+<!--
+  Plantilla del correo · FIFO Control de Vencimientos
+  Recibe el objeto `data` construido por Code.gs → construirReporte_()
+  Reglas: CSS 100% en línea, maquetación con tablas, sin imágenes externas.
+-->
+<body style="margin:0;padding:0;background:#EEF1F5;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:#EEF1F5;">
+  1 vencidos y 2 en día de aviso (3, 8, 15, 30) · Supermercado La Esquina
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEF1F5;padding:24px 12px;">
+<tr><td align="center">
+
+  <table role="presentation" width="680" cellpadding="0" cellspacing="0" border="0"
+         style="width:680px;max-width:100%;background:#FFFFFF;border-radius:10px;overflow:hidden;
+                box-shadow:0 2px 10px rgba(15,43,70,.08);font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+    <!-- ============================ ENCABEZADO ============================ -->
+    <tr>
+      <td style="background:#0F2B46;padding:22px 28px;">
+        <div style="font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#8FB8DC;font-weight:600;">
+          Supermercado La Esquina &nbsp;·&nbsp; Sede Centro
+        </div>
+        <div style="font-size:21px;line-height:1.25;font-weight:700;color:#FFFFFF;margin-top:6px;">
+          Control de Inventario &middot; Vencimientos (FIFO)
+        </div>
+        <div style="font-size:13px;color:#B9D2E8;margin-top:6px;">
+          lunes 19 de octubre de 2026 &nbsp;·&nbsp; Reporte diario &nbsp;·&nbsp; 03:38 PM
+        </div>
+      </td>
+    </tr>
+
+    <!-- ========================= BANNER DE ALERTA ========================= -->
+    <tr>
+      <td style="padding:22px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#FEF2F2;border-left:5px solid #B91C1C;border-radius:4px;">
+          <tr><td style="padding:14px 18px;">
+            <div style="font-size:15px;font-weight:700;color:#B91C1C;line-height:1.35;">
+              Alerta: 1 lote(s) VENCIDO(S) en tienda/bodega y 2 en día de aviso
+            </div>
+            <div style="font-size:13px;color:#3F4A57;margin-top:5px;line-height:1.5;">
+              Requieren retiro inmediato. 32 unidades comprometidas en total. Hay 1 lote(s) sin fecha de vencimiento registrada; complétalos en la app.
+            </div>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ============================== KPIs =============================== -->
+    <tr>
+      <td style="padding:18px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            
+            <td width="25%" style="padding:0 4px;" valign="top">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="border:1px solid #E2E8F0;border-top:4px solid #B91C1C;border-radius:6px;">
+                <tr><td align="center" style="padding:14px 8px 12px;">
+                  <div style="font-size:28px;line-height:1;font-weight:700;color:#B91C1C;">1</div>
+                  <div style="font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#64748B;margin-top:6px;font-weight:600;">
+                    Lotes vencidos
+                  </div>
+                </td></tr>
+              </table>
+            </td>
+            
+            <td width="25%" style="padding:0 4px;" valign="top">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="border:1px solid #E2E8F0;border-top:4px solid #BE123C;border-radius:6px;">
+                <tr><td align="center" style="padding:14px 8px 12px;">
+                  <div style="font-size:28px;line-height:1;font-weight:700;color:#BE123C;">2</div>
+                  <div style="font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#64748B;margin-top:6px;font-weight:600;">
+                    En día de aviso
+                  </div>
+                </td></tr>
+              </table>
+            </td>
+            
+            <td width="25%" style="padding:0 4px;" valign="top">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="border:1px solid #E2E8F0;border-top:4px solid #0F2B46;border-radius:6px;">
+                <tr><td align="center" style="padding:14px 8px 12px;">
+                  <div style="font-size:28px;line-height:1;font-weight:700;color:#0F2B46;">32</div>
+                  <div style="font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#64748B;margin-top:6px;font-weight:600;">
+                    Unidades en alerta
+                  </div>
+                </td></tr>
+              </table>
+            </td>
+            
+            <td width="25%" style="padding:0 4px;" valign="top">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="border:1px solid #E2E8F0;border-top:4px solid #64748B;border-radius:6px;">
+                <tr><td align="center" style="padding:14px 8px 12px;">
+                  <div style="font-size:28px;line-height:1;font-weight:700;color:#64748B;">9</div>
+                  <div style="font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#64748B;margin-top:6px;font-weight:600;">
+                    Lotes activos
+                  </div>
+                </td></tr>
+              </table>
+            </td>
+            
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ====================== TABLA DETALLADA (FIFO) ===================== -->
+    <tr>
+      <td style="padding:26px 28px 0;">
+        <div style="font-size:15px;font-weight:700;color:#0F2B46;padding-bottom:4px;">
+          Detalle de lotes en alerta
+        </div>
+        <div style="font-size:12px;color:#64748B;padding-bottom:12px;">
+          Ordenado por fecha de vencimiento más próxima (regla FIFO)
+          · 3 lote(s)
+        </div>
+
+        
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-collapse:collapse;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden;">
+          <tr style="background:#0F2B46;">
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">PRODUCTO</th>
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">PROVEEDOR</th>
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">LOTE / UBIC.</th>
+            <th align="center" style="padding:9px 8px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">CANT</th>
+            <th align="center" style="padding:9px 8px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">VENCE</th>
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">ESTADO</th>
+            <th align="center" style="padding:9px 8px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">&nbsp;</th>
+          </tr>
+          
+          <tr style="background:#FFFFFF;border-bottom:1px solid #EDF2F7;">
+            <td style="padding:10px;font-size:12px;color:#1E293B;vertical-align:top;">
+              <b>Leche entera 1 L</b>
+              <div style="font-size:10px;color:#94A3B8;margin-top:2px;">P-001 · 7702001234567</div>
+            </td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;">Lacteos del Valle</td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;">Nevera 2</td>
+            <td align="center" style="padding:10px 8px;font-size:13px;color:#1E293B;font-weight:700;vertical-align:top;">12</td>
+            <td align="center" style="padding:10px 8px;font-size:12px;color:#1E293B;vertical-align:top;white-space:nowrap;">16/10/2026</td>
+            <td style="padding:10px;vertical-align:top;">
+              <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#B91C1C;background:#FEE2E2;">Vencido</span>
+              <div style="font-size:10px;color:#B91C1C;margin-top:4px;font-weight:600;">Vencido hace 3 días</div>
+            </td>
+            <td align="center" style="padding:10px 8px;vertical-align:top;">
+              
+                <a href="https://docs.google.com/spreadsheets/d/ID_TEST/edit#gid=222&amp;range=A2" style="display:inline-block;padding:5px 10px;background:#0F2B46;color:#FFFFFF;
+                   font-size:11px;font-weight:600;text-decoration:none;border-radius:4px;">Abrir</a>
+              
+            </td>
+          </tr>
+          
+          <tr style="background:#F8FAFC;border-bottom:1px solid #EDF2F7;">
+            <td style="padding:10px;font-size:12px;color:#1E293B;vertical-align:top;">
+              <b>Leche entera 1 L</b>
+              <div style="font-size:10px;color:#94A3B8;margin-top:2px;">P-001 · 7702001234567</div>
+            </td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;">Lacteos del Valle</td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;">Nevera 1</td>
+            <td align="center" style="padding:10px 8px;font-size:13px;color:#1E293B;font-weight:700;vertical-align:top;">6</td>
+            <td align="center" style="padding:10px 8px;font-size:12px;color:#1E293B;vertical-align:top;white-space:nowrap;">19/10/2026</td>
+            <td style="padding:10px;vertical-align:top;">
+              <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#BE123C;background:#FFE4E6;">Alerta</span>
+              <div style="font-size:10px;color:#BE123C;margin-top:4px;font-weight:600;">VENCE HOY</div>
+            </td>
+            <td align="center" style="padding:10px 8px;vertical-align:top;">
+              
+                <a href="https://docs.google.com/spreadsheets/d/ID_TEST/edit#gid=222&amp;range=A3" style="display:inline-block;padding:5px 10px;background:#0F2B46;color:#FFFFFF;
+                   font-size:11px;font-weight:600;text-decoration:none;border-radius:4px;">Abrir</a>
+              
+            </td>
+          </tr>
+          
+          <tr style="background:#FFFFFF;border-bottom:1px solid #EDF2F7;">
+            <td style="padding:10px;font-size:12px;color:#1E293B;vertical-align:top;">
+              <b>Pan tajado integral</b>
+              <div style="font-size:10px;color:#94A3B8;margin-top:2px;">P-005 · 7705003334445</div>
+            </td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;">Panificadora Central</td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;">Mostrador</td>
+            <td align="center" style="padding:10px 8px;font-size:13px;color:#1E293B;font-weight:700;vertical-align:top;">14</td>
+            <td align="center" style="padding:10px 8px;font-size:12px;color:#1E293B;vertical-align:top;white-space:nowrap;">21/10/2026</td>
+            <td style="padding:10px;vertical-align:top;">
+              <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#BE123C;background:#FFE4E6;">Alerta</span>
+              <div style="font-size:10px;color:#BE123C;margin-top:4px;font-weight:600;">Vence en 2 días</div>
+            </td>
+            <td align="center" style="padding:10px 8px;vertical-align:top;">
+              
+                <a href="https://docs.google.com/spreadsheets/d/ID_TEST/edit#gid=222&amp;range=A6" style="display:inline-block;padding:5px 10px;background:#0F2B46;color:#FFFFFF;
+                   font-size:11px;font-weight:600;text-decoration:none;border-radius:4px;">Abrir</a>
+              
+            </td>
+          </tr>
+          
+        </table>
+
+        
+        
+      </td>
+    </tr>
+
+    <!-- ================= RANKING POR PROVEEDOR (acción) ================= -->
+    
+    <tr>
+      <td style="padding:26px 28px 0;">
+        <div style="font-size:15px;font-weight:700;color:#0F2B46;padding-bottom:4px;">Prioridad de gestión por proveedor</div>
+        <div style="font-size:12px;color:#64748B;padding-bottom:12px;">
+          A quién conviene llamar primero: devoluciones, notas crédito o reposición.
+        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-collapse:collapse;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden;">
+          <tr style="background:#F1F5F9;">
+            <th align="left"   style="padding:8px 10px;font-size:11px;color:#475569;font-weight:700;">PROVEEDOR</th>
+            <th align="center" style="padding:8px 8px;font-size:11px;color:#475569;font-weight:700;">LOTES CON ALERTA</th>
+            <th align="center" style="padding:8px 8px;font-size:11px;color:#475569;font-weight:700;">VENCIDOS</th>
+            <th align="center" style="padding:8px 8px;font-size:11px;color:#475569;font-weight:700;">UNIDADES</th>
+          </tr>
+          
+          <tr style="border-bottom:1px solid #EDF2F7;">
+            <td style="padding:9px 10px;font-size:12px;color:#1E293B;">Lacteos del Valle</td>
+            <td align="center" style="padding:9px 8px;font-size:12px;color:#1E293B;font-weight:600;">2</td>
+            <td align="center" style="padding:9px 8px;font-size:12px;font-weight:700;color:#B91C1C;">1</td>
+            <td align="center" style="padding:9px 8px;font-size:12px;color:#475569;">18</td>
+          </tr>
+          
+          <tr style="border-bottom:1px solid #EDF2F7;">
+            <td style="padding:9px 10px;font-size:12px;color:#1E293B;">Panificadora Central</td>
+            <td align="center" style="padding:9px 8px;font-size:12px;color:#1E293B;font-weight:600;">1</td>
+            <td align="center" style="padding:9px 8px;font-size:12px;font-weight:700;color:#94A3B8;">0</td>
+            <td align="center" style="padding:9px 8px;font-size:12px;color:#475569;">14</td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+    
+
+    <!-- =================== ANEXO OPCIONAL: EN REGLA =================== -->
+    
+    <tr>
+      <td style="padding:26px 28px 0;">
+        <div style="font-size:15px;font-weight:700;color:#0F2B46;padding-bottom:4px;">
+          Anexo · 1 lote(s) en regla
+        </div>
+        <div style="font-size:12px;color:#64748B;padding-bottom:10px;">Sin riesgo en el corto plazo.</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-collapse:collapse;border:1px solid #E2E8F0;">
+          
+          <tr style="border-bottom:1px solid #EDF2F7;">
+            <td style="padding:7px 10px;font-size:12px;color:#334155;">Galletas avena 250 g</td>
+            <td align="center" style="padding:7px 8px;font-size:12px;color:#334155;white-space:nowrap;">07/05/2027</td>
+            <td align="center" style="padding:7px 8px;font-size:11px;color:#15803D;">Vence en 200 días</td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+    
+
+    <!-- ============================ LLAMADO ============================== -->
+    <tr>
+      <td align="center" style="padding:28px 28px 0;">
+        
+        <a href="https://docs.google.com/spreadsheets/d/ID_TEST/edit" style="display:inline-block;padding:11px 24px;background:#FFFFFF;color:#0F2B46;
+           border:2px solid #0F2B46;font-size:13px;font-weight:700;text-decoration:none;border-radius:6px;">Ver hoja de cálculo</a>
+      </td>
+    </tr>
+
+    <!-- ============================== PIE ================================ -->
+    <tr>
+      <td style="padding:26px 28px 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-top:1px solid #E2E8F0;">
+          <tr><td style="padding-top:14px;">
+            <div style="font-size:11px;color:#64748B;line-height:1.7;">
+              <b>Parámetros aplicados:</b> aviso en 3, 8, 15, 30 días (y recta final 0-2) ·
+              próximo ≤ 30 días ·
+              vigilancia ≤ 90 días ·
+              9 lote(s) activo(s) en seguimiento.<br>
+              
+                <span style="color:#A16207;"><b>1 lote(s) sin fecha de vencimiento registrada.</b></span><br>
+              
+              <b>Generado:</b> lunes 19 de octubre de 2026 a las 03:38 PM por tester@empresa.com.<br>
+              <b>Destinatarios:</b> jefe@empresa.com, bodega@empresa.com (CC: auditoria@empresa.com)<br>
+              <span style="color:#94A3B8;">
+                Correo automático del sistema de control de vencimientos. No responder a este mensaje.
+                Para cambios en el inventario, registre la novedad en la aplicación.
+              </span>
+            </div>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+  </table>
+
+  <div style="font-size:10px;color:#94A3B8;padding-top:12px;font-family:'Segoe UI',Arial,sans-serif;">
+    Supermercado La Esquina · Sistema FIFO de control de inventario
+  </div>
+
+</td></tr>
+</table>
+</body>
+</html>

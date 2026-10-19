@@ -1,0 +1,18 @@
+{
+  "name": "fifo-control-vencimientos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Control FIFO de vencimientos para punto de venta: Google Sheets + Apps Script + app instalable (PWA).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node tools/build-onepager.js",
+    "icons": "node tools/make-icons.js",
+    "serve": "node tests/servidor-prueba.js 8765",
+    "test": "node tools/build-onepager.js && node tests/fifo_test.js && node tests/fifo_api.js && node tests/fifo_api.js bundle && node tests/fifo_ui.js && node tests/fifo_render.js && node tests/fifo_e2e.js",
+    "test:api": "node tests/fifo_api.js && node tests/fifo_api.js bundle",
+    "test:ui": "node tests/fifo_ui.js"
+  }
+}

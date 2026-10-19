@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de Vencimientos</title>
+</head>
+<!--
+  Plantilla del correo · FIFO Control de Vencimientos
+  Recibe el objeto `data` construido por Code.gs → construirReporte_()
+  Reglas: CSS 100% en línea, maquetación con tablas, sin imágenes externas.
+-->
+<body style="margin:0;padding:0;background:#EEF1F5;">
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:#EEF1F5;">
+  <?= data.kpi.vencidos ?> vencidos y <?= data.kpi.alertas ?> en día de aviso (<?= data.diasAlerta ?>) · <?= data.empresa ?>
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEF1F5;padding:24px 12px;">
+<tr><td align="center">
+
+  <table role="presentation" width="680" cellpadding="0" cellspacing="0" border="0"
+         style="width:680px;max-width:100%;background:#FFFFFF;border-radius:10px;overflow:hidden;
+                box-shadow:0 2px 10px rgba(15,43,70,.08);font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+    <!-- ============================ ENCABEZADO ============================ -->
+    <tr>
+      <td style="background:#0F2B46;padding:22px 28px;">
+        <div style="font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#8FB8DC;font-weight:600;">
+          <?= data.empresa ?> &nbsp;·&nbsp; <?= data.punto ?>
+        </div>
+        <div style="font-size:21px;line-height:1.25;font-weight:700;color:#FFFFFF;margin-top:6px;">
+          Control de Inventario &middot; Vencimientos (FIFO)
+        </div>
+        <div style="font-size:13px;color:#B9D2E8;margin-top:6px;">
+          <?= data.fechaTexto ?> &nbsp;·&nbsp; <?= data.tipoTexto ?> &nbsp;·&nbsp; <?= data.horaTexto ?>
+        </div>
+      </td>
+    </tr>
+
+    <!-- ========================= BANNER DE ALERTA ========================= -->
+    <tr>
+      <td style="padding:22px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:<?= data.fondoAlerta ?>;border-left:5px solid <?= data.colorAlerta ?>;border-radius:4px;">
+          <tr><td style="padding:14px 18px;">
+            <div style="font-size:15px;font-weight:700;color:<?= data.colorAlerta ?>;line-height:1.35;">
+              <?= data.tituloAlerta ?>
+            </div>
+            <div style="font-size:13px;color:#3F4A57;margin-top:5px;line-height:1.5;">
+              <?= data.subtituloAlerta ?>
+            </div>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ============================== KPIs =============================== -->
+    <tr>
+      <td style="padding:18px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <? for (var k = 0; k < data.kpis.length; k++) { var kpi = data.kpis[k]; ?>
+            <td width="25%" style="padding:0 4px;" valign="top">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="border:1px solid #E2E8F0;border-top:4px solid <?= kpi.color ?>;border-radius:6px;">
+                <tr><td align="center" style="padding:14px 8px 12px;">
+                  <div style="font-size:28px;line-height:1;font-weight:700;color:<?= kpi.color ?>;"><?= kpi.valor ?></div>
+                  <div style="font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:#64748B;margin-top:6px;font-weight:600;">
+                    <?= kpi.etiqueta ?>
+                  </div>
+                </td></tr>
+              </table>
+            </td>
+            <? } ?>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ====================== TABLA DETALLADA (FIFO) ===================== -->
+    <tr>
+      <td style="padding:26px 28px 0;">
+        <div style="font-size:15px;font-weight:700;color:#0F2B46;padding-bottom:4px;">
+          <? if (data.hayCriticos) { ?>Detalle de lotes en alerta<? } else { ?>Sin lotes en alerta<? } ?>
+        </div>
+        <div style="font-size:12px;color:#64748B;padding-bottom:12px;">
+          Ordenado por fecha de vencimiento más próxima (regla FIFO)
+          <? if (data.hayCriticos) { ?>· <?= data.totalCriticos ?> lote(s)<? } ?>
+        </div>
+
+        <? if (!data.hayCriticos) { ?>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;">
+          <tr><td style="padding:18px;font-size:13px;color:#166534;text-align:center;">
+            <b>Ningún lote vencido ni en día de aviso (<?= data.diasAlerta ?> días).</b><br>
+            Rotación al día. Los días de aviso son <?= data.diasAlerta ?> y la recta final 0-2 días.
+          </td></tr>
+        </table>
+        <? } else { ?>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-collapse:collapse;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden;">
+          <tr style="background:#0F2B46;">
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">PRODUCTO</th>
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">PROVEEDOR</th>
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">LOTE / UBIC.</th>
+            <th align="center" style="padding:9px 8px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">CANT</th>
+            <th align="center" style="padding:9px 8px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">VENCE</th>
+            <th align="left"   style="padding:9px 10px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">ESTADO</th>
+            <th align="center" style="padding:9px 8px;font-size:11px;color:#FFFFFF;font-weight:600;letter-spacing:.4px;">&nbsp;</th>
+          </tr>
+          <? for (var i = 0; i < data.criticos.length; i++) {
+               var r = data.criticos[i];
+               var zebra = (i % 2 === 0) ? '#FFFFFF' : '#F8FAFC'; ?>
+          <tr style="background:<?= zebra ?>;border-bottom:1px solid #EDF2F7;">
+            <td style="padding:10px;font-size:12px;color:#1E293B;vertical-align:top;">
+              <b><?= r.desc ?></b>
+              <? if (r.item) { ?><div style="font-size:10px;color:#94A3B8;margin-top:2px;"><?= r.item ?><? if (r.codigoBarra) { ?> · <?= r.codigoBarra ?><? } ?></div><? } ?>
+            </td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;"><?= r.proveedor ?></td>
+            <td style="padding:10px;font-size:12px;color:#475569;vertical-align:top;"><?= r.lote ? r.lote : '—' ?></td>
+            <td align="center" style="padding:10px 8px;font-size:13px;color:#1E293B;font-weight:700;vertical-align:top;"><?= r.cantidad ?></td>
+            <td align="center" style="padding:10px 8px;font-size:12px;color:#1E293B;vertical-align:top;white-space:nowrap;"><?= r.fechaTexto ?></td>
+            <td style="padding:10px;vertical-align:top;">
+              <?!= data._celda(r.estado, r.estado) ?>
+              <div style="font-size:10px;color:<?= r.color ?>;margin-top:4px;font-weight:600;"><?= r.diasTexto ?></div>
+            </td>
+            <td align="center" style="padding:10px 8px;vertical-align:top;">
+              <? if (r.link) { ?>
+                <a href="<?= r.link ?>" style="display:inline-block;padding:5px 10px;background:#0F2B46;color:#FFFFFF;
+                   font-size:11px;font-weight:600;text-decoration:none;border-radius:4px;">Abrir</a>
+              <? } else { ?>—<? } ?>
+            </td>
+          </tr>
+          <? } ?>
+        </table>
+
+        <? if (data.truncado) { ?>
+        <div style="font-size:12px;color:#64748B;padding-top:8px;">
+          …y <b><?= data.filasOmitidas ?></b> lote(s) más con alerta. El listado completo está en la hoja de cálculo.
+        </div>
+        <? } ?>
+        <? } ?>
+      </td>
+    </tr>
+
+    <!-- ================= RANKING POR PROVEEDOR (acción) ================= -->
+    <? if (data.proveedores.length > 0) { ?>
+    <tr>
+      <td style="padding:26px 28px 0;">
+        <div style="font-size:15px;font-weight:700;color:#0F2B46;padding-bottom:4px;">Prioridad de gestión por proveedor</div>
+        <div style="font-size:12px;color:#64748B;padding-bottom:12px;">
+          A quién conviene llamar primero: devoluciones, notas crédito o reposición.
+        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-collapse:collapse;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden;">
+          <tr style="background:#F1F5F9;">
+            <th align="left"   style="padding:8px 10px;font-size:11px;color:#475569;font-weight:700;">PROVEEDOR</th>
+            <th align="center" style="padding:8px 8px;font-size:11px;color:#475569;font-weight:700;">LOTES CON ALERTA</th>
+            <th align="center" style="padding:8px 8px;font-size:11px;color:#475569;font-weight:700;">VENCIDOS</th>
+            <th align="center" style="padding:8px 8px;font-size:11px;color:#475569;font-weight:700;">UNIDADES</th>
+          </tr>
+          <? for (var p = 0; p < data.proveedores.length; p++) {
+               var pr = data.proveedores[p]; ?>
+          <tr style="border-bottom:1px solid #EDF2F7;">
+            <td style="padding:9px 10px;font-size:12px;color:#1E293B;"><?= pr.proveedor ?></td>
+            <td align="center" style="padding:9px 8px;font-size:12px;color:#1E293B;font-weight:600;"><?= pr.lotes ?></td>
+            <td align="center" style="padding:9px 8px;font-size:12px;font-weight:700;color:<?= pr.vencidos > 0 ? '#B91C1C' : '#94A3B8' ?>;"><?= pr.vencidos ?></td>
+            <td align="center" style="padding:9px 8px;font-size:12px;color:#475569;"><?= pr.unidades ?></td>
+          </tr>
+          <? } ?>
+        </table>
+      </td>
+    </tr>
+    <? } ?>
+
+    <!-- =================== ANEXO OPCIONAL: EN REGLA =================== -->
+    <? if (data.itemsEnRegla.length > 0) { ?>
+    <tr>
+      <td style="padding:26px 28px 0;">
+        <div style="font-size:15px;font-weight:700;color:#0F2B46;padding-bottom:4px;">
+          Anexo · <?= data.itemsEnRegla.length ?> lote(s) en regla
+        </div>
+        <div style="font-size:12px;color:#64748B;padding-bottom:10px;">Sin riesgo en el corto plazo.</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-collapse:collapse;border:1px solid #E2E8F0;">
+          <? for (var e = 0; e < data.itemsEnRegla.length; e++) { var er = data.itemsEnRegla[e]; ?>
+          <tr style="border-bottom:1px solid #EDF2F7;">
+            <td style="padding:7px 10px;font-size:12px;color:#334155;"><?= er.desc ?></td>
+            <td align="center" style="padding:7px 8px;font-size:12px;color:#334155;white-space:nowrap;"><?= er.fechaTexto ?></td>
+            <td align="center" style="padding:7px 8px;font-size:11px;color:#15803D;"><?= er.diasTexto ?></td>
+          </tr>
+          <? } ?>
+        </table>
+      </td>
+    </tr>
+    <? } ?>
+
+    <!-- ============================ LLAMADO ============================== -->
+    <tr>
+      <td align="center" style="padding:28px 28px 0;">
+        <? if (data.enlaceApp) { ?>
+          <a href="<?= data.enlaceApp ?>" style="display:inline-block;padding:13px 28px;background:#0F2B46;color:#FFFFFF;
+             font-size:14px;font-weight:700;text-decoration:none;border-radius:6px;">Abrir la aplicación</a>
+          <div style="height:10px;line-height:10px;">&nbsp;</div>
+        <? } ?>
+        <a href="<?= data.enlaceHoja ?>" style="display:inline-block;padding:11px 24px;background:#FFFFFF;color:#0F2B46;
+           border:2px solid #0F2B46;font-size:13px;font-weight:700;text-decoration:none;border-radius:6px;">Ver hoja de cálculo</a>
+      </td>
+    </tr>
+
+    <!-- ============================== PIE ================================ -->
+    <tr>
+      <td style="padding:26px 28px 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+               style="border-top:1px solid #E2E8F0;">
+          <tr><td style="padding-top:14px;">
+            <div style="font-size:11px;color:#64748B;line-height:1.7;">
+              <b>Parámetros aplicados:</b> aviso en <?= data.diasAlerta ?> días (y recta final 0-2) ·
+              próximo ≤ <?= data.diasProximo ?> días ·
+              vigilancia ≤ <?= data.diasVigilancia ?> días ·
+              <?= data.totalRegistros ?> lote(s) activo(s) en seguimiento.<br>
+              <? if (data.sinFecha > 0) { ?>
+                <span style="color:#A16207;"><b><?= data.sinFecha ?> lote(s) sin fecha de vencimiento registrada.</b></span><br>
+              <? } ?>
+              <b>Generado:</b> <?= data.fechaTexto ?> a las <?= data.horaTexto ?> por <?= data.generadoPor ?>.<br>
+              <b>Destinatarios:</b> <?= data._destinatarios ?><br>
+              <span style="color:#94A3B8;">
+                Correo automático del sistema de control de vencimientos. No responder a este mensaje.
+                Para cambios en el inventario, registre la novedad en la aplicación.
+              </span>
+            </div>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+  </table>
+
+  <div style="font-size:10px;color:#94A3B8;padding-top:12px;font-family:'Segoe UI',Arial,sans-serif;">
+    <?= data.empresa ?> · Sistema FIFO de control de inventario
+  </div>
+
+</td></tr>
+</table>
+</body>
+</html>
