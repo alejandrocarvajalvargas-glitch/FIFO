@@ -250,6 +250,13 @@ prueba la de fábrica antes de rendirse: si la de fábrica funciona, se queda co
 guardada y lo deja dicho en el panel). Si tampoco funciona, restaura la guardada y muestra el
 aviso, así que el intento no tiene efectos secundarios.
 
+**La tarjeta está plegada.** La dirección de la API es un ajuste técnico, no algo del día a día:
+en **Panel** la tarjeta **Conexión** aparece cerrada, en una sola línea (*"Conexión · Solo si hay
+problemas para conectar"*), y solo se despliega si alguien la toca. Si el arranque **no logra
+conectar**, la app la abre sola, con el error ya escrito dentro, para que el arreglo esté a un
+toque. En la app de Apps Script (ruta A) la tarjeta sigue oculta del todo: ahí la dirección no se
+configura.
+
 **Un teléfono sí y otro no, con la misma dirección.** Casi siempre es estado o red de *ese*
 teléfono. Para separarlo en 10 segundos: **Panel ▸ Conexión ▸ Ver qué responde el servidor**
 abre la dirección `…/exec?op=iniciar&callback=prueba` en el navegador de ese teléfono. Si sale

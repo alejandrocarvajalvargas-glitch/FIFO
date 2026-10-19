@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-=======
-[README.md](https://github.com/user-attachments/files/33685507/README.md)
-# FIFO
-# FIFO · Control de Inventario y Vencimientos  Aplicación operativa de **control de inventario por fechas de vencimiento** 
->>>>>>> ca64da0f159100122814548c35e7450d5a3e38cb
 # FIFO · Control de Inventario y Vencimientos
 
 Aplicación operativa de **control de inventario por fechas de vencimiento** para un punto de venta
@@ -81,10 +75,7 @@ automatizado es el correo electrónico.
 | `docs/06-referencia-expresiones.md` | Chuleta de todas las expresiones y fórmulas usadas |
 | `docs/07-configurar-mcp-google-sheets.md` | **Conectar OpenCode con tu Google Sheets (MCP)** — para que el agente cree y configure el libro por código |
 | `docs/08-app-movil-web.md` | **La app de celular**: por qué la cámara falla dentro de Apps Script, las dos rutas de escaneo, JSONP y la publicación de la app instalable |
-<<<<<<< HEAD
 | `docs/09-github.md` | **Repositorio de GitHub**: versiones, publicación de la app en GitHub Pages y pruebas automáticas (CI) |
-=======
->>>>>>> ca64da0f159100122814548c35e7450d5a3e38cb
 | `apps-script/Code.gs` | Código completo del motor de reportes + API de la app + menú (modalidad 2 archivos) |
 | `apps-script/FIFO_UnArchivo.gs` | **Versión generada: el motor + las dos interfaces en UN solo archivo** — es lo único que hay que pegar en Apps Script |
 | `apps-script/AppMovil.html` | **Fuente única de la interfaz móvil**, para la app de Apps Script y para la instalable |
@@ -92,12 +83,9 @@ automatizado es el correo electrónico.
 | `pwa/` | **App instalable**: `index.html` (generado), manifest, service worker, íconos PNG y `README.md` con la publicación en Netlify Drop |
 | `tools/build-onepager.js` | Genera y verifica `FIFO_UnArchivo.gs` y `pwa/index.html` |
 | `tools/make-icons.js` | Dibuja los íconos PNG de la app instalable (sin dependencias) |
-<<<<<<< HEAD
 | `tests/` | Las 6 suites de prueba (`npm test`): API en los dos modos, interfaz, plantilla y punta a punta |
 | `package.json` | Órdenes `npm test`, `npm run build`, `npm run serve` (sin dependencias que instalar) |
 | `.github/workflows/` | CI que corre las pruebas en cada push y publica `pwa/` en GitHub Pages |
-=======
->>>>>>> ca64da0f159100122814548c35e7450d5a3e38cb
 | `apps-script/appsscript.json` | Manifiesto (zona horaria, scopes) |
 | `apps-script/README.md` | Instalación del script paso a paso |
 | `apps-script/preview-ejemplo.html` | **Correo de muestra ya renderizado** — ábrelo en el navegador para ver cómo llega el reporte antes de instalar nada |
@@ -144,6 +132,8 @@ Los umbrales **no están hardcodeados**: viven en la hoja `CONFIG` y los lee una
    ordenada por lo que vence primero (FIFO). Desde la misma lista puede marcar **Vender** o **Retirar**.
    La pestaña **Tabla** muestra los mismos lotes en tabla plana: **código de barras, ítem, Desc. item,
    fecha de vencimiento, proveedor, días restantes y estado**, ordenados por días restantes.
+   La tarjeta **Conexión** del panel va plegada (es un ajuste técnico) y se abre sola solo si algo
+   falla al conectar.
 4. **07:00 todos los días**, Apps Script revisa la hoja y manda **un solo correo HTML** a la lista de
    destinatarios con KPIs, tabla detallada y enlace directo a cada registro. Si ya se envió ese día a
    esa misma lista, no vuelve a enviar.
@@ -158,14 +148,9 @@ entregarse** con dobles de prueba que simulan las hojas, y con un navegador real
 
 | Prueba | Casos | Qué cubre |
 |---|---|---|
-<<<<<<< HEAD
 | `tests/fifo_api.js` | 170 × 2 modos | la API completa: clave, búsqueda, guardado, validaciones, KPIs, filtros, orden FIFO, acciones, entrega de la interfaz, HTTP (`doPost` / `doGet?op=`), JSONP, la regla de avisos por hitos, la auditoría del catálogo, el **orden automático de SEGUIMIENTO**, el **semáforo de la columna L** y la **protección de las hojas** |
 | `tests/fifo_ui.js` | 178 | la interfaz y la app instalable: ids y selectores reales, el puente contra el servidor, las dos rutas de cámara, el estado «Alerta» con su filtro, la **pestaña Tabla con sus 7 columnas**, el diagnóstico y la autorreparación de la conexión y la coherencia de `pwa/` |
-=======
-| `fifo_api.js` | 170 × 2 modos | la API completa: clave, búsqueda, guardado, validaciones, KPIs, filtros, orden FIFO, acciones, entrega de la interfaz, HTTP (`doPost` / `doGet?op=`), JSONP, la regla de avisos por hitos, la auditoría del catálogo, el **orden automático de SEGUIMIENTO**, el **semáforo de la columna L** y la **protección de las hojas** |
-| `fifo_ui.js` | 178 | la interfaz y la app instalable: ids y selectores reales, el puente contra el servidor, las dos rutas de cámara, el estado «Alerta» con su filtro, la **pestaña Tabla con sus 7 columnas**, el diagnóstico y la autorreparación de la conexión y la coherencia de `pwa/` |
->>>>>>> ca64da0f159100122814548c35e7450d5a3e38cb
-| `fifo_test.js` · `fifo_e2e.js` · `fifo_render.js` | — | motor de correo, plantilla y vista previa |
+| `tests/fifo_test.js` · `tests/fifo_e2e.js` · `tests/fifo_render.js` | — | motor de correo, plantilla y vista previa |
 | Navegador | — | la app instalable contra una API falsa que imita el contrato: entrar, buscar, guardar, filtrar, vender, ruta de la foto y ZXing desde el CDN |
 
 Las pruebas del correo comprueban, además:
@@ -194,7 +179,6 @@ Las pruebas del correo comprueban, además:
    **Proteger hojas**. (SEGUIMIENTO se ordena solo cada vez que registras un lote.)
 5. Prueba con `enviarReportePrueba()` → revisa tu bandeja.
 6. Publica la app de celular: `apps-script/README.md` **Paso 9**. Para la versión instalable con
-<<<<<<< HEAD
    cámara en vivo: `pwa/README.md` (a mano, 5 minutos) o `docs/09-github.md` (desde GitHub, con URL fija).
 
 Detalle cronológico y pruebas: `docs/05-plan-implementacion.md`.
@@ -212,8 +196,3 @@ de la app en **GitHub Pages** (gratis y con HTTPS). Solo falta crear el reposito
 | Probar la app en el PC con una API falsa | `npm run serve` |
 | Publicar la app en GitHub Pages | `Settings ▸ Pages ▸ Source: GitHub Actions` (una vez) |
 | Subir el código sin copiar y pegar | `clasp push` + `clasp deploy -i <ID>` (`docs/09-github.md` §4) |
-=======
-   cámara en vivo: `pwa/README.md`.
-
-Detalle cronológico y pruebas: `docs/05-plan-implementacion.md`.
->>>>>>> ca64da0f159100122814548c35e7450d5a3e38cb

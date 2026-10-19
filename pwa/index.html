@@ -58,6 +58,15 @@
   .ayuda.ok{color:var(--verde)}
   .ayuda.malo{color:var(--rojo)}
 
+  /* ---------- tarjeta plegable (Conexión) ---------- */
+  details > summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:8px}
+  details > summary::-webkit-details-marker{display:none}
+  details > summary h2{margin:0}
+  details > summary .ayuda{margin:0;flex:1}
+  details > summary .flecha{color:var(--gris);transition:transform .15s}
+  details[open] > summary .flecha{transform:rotate(180deg)}
+  .cuerpo-api{margin-top:12px}
+
   /* ---------- botones ---------- */
   button{font-family:inherit;font-size:15px;font-weight:600;border:none;border-radius:9px;padding:12px 14px;cursor:pointer}
   .btn-azul{background:var(--azul);color:#fff}
@@ -322,23 +331,31 @@
       <div class="ayuda oculto" id="aviso-ios"></div>
       <div class="ayuda" id="pie-info" style="margin-top:10px"></div>
     </div>
-    <div class="tarjeta oculto" id="caja-api">
-      <h2>Conexión</h2>
-      <label for="campo-api">Dirección de la API (Apps Script)</label>
-      <input id="campo-api" type="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec">
-      <div class="fila" style="margin-top:8px">
-        <button class="btn-gris" id="btn-guardar-api">Guardar</button>
-        <button class="btn-gris" id="btn-probar-api">Probar</button>
+    <!-- Plegable: la dirección de la API es un ajuste técnico. Se abre sola si
+         algo falla al conectar (ver falloDeConexion). -->
+    <details class="tarjeta oculto" id="caja-api">
+      <summary>
+        <h2>Conexión</h2>
+        <span class="ayuda">Solo si hay problemas para conectar</span>
+        <span class="flecha">▾</span>
+      </summary>
+      <div class="cuerpo-api">
+        <label for="campo-api">Dirección de la API (Apps Script)</label>
+        <input id="campo-api" type="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec">
+        <div class="fila" style="margin-top:8px">
+          <button class="btn-gris" id="btn-guardar-api">Guardar</button>
+          <button class="btn-gris" id="btn-probar-api">Probar</button>
+        </div>
+        <div class="fila" style="margin-top:8px">
+          <button class="btn-gris" id="btn-abrir-api">Ver qué responde el servidor</button>
+        </div>
+        <div class="ayuda" id="estado-api"></div>
+        <div class="ayuda" id="api-en-uso"></div>
+        <div class="fila oculto" style="margin-top:8px" id="fila-fabrica">
+          <button class="btn-gris" id="btn-fabrica-api">Volver a la dirección de fábrica</button>
+        </div>
       </div>
-      <div class="fila" style="margin-top:8px">
-        <button class="btn-gris" id="btn-abrir-api">Ver qué responde el servidor</button>
-      </div>
-      <div class="ayuda" id="estado-api"></div>
-      <div class="ayuda" id="api-en-uso"></div>
-      <div class="fila oculto" style="margin-top:8px" id="fila-fabrica">
-        <button class="btn-gris" id="btn-fabrica-api">Volver a la dirección de fábrica</button>
-      </div>
-    </div>
+    </details>
   </section>
 
 </main>
@@ -593,6 +610,7 @@ function configurarModo(){
     $('texto-escanear').textContent = 'Escanear código';
     $('ayuda-escanear').textContent = 'Cámara en vivo · también puedes escribir el código';
     $('caja-api').classList.remove('oculto');
+    $('caja-api').open = false;   /* plegada: es un ajuste técnico */
     $('campo-api').value = apiUrl();
     mostrarApiEnUso();
     var l = document.createElement('link'); l.rel = 'manifest'; l.href = 'manifest.json';
@@ -665,6 +683,11 @@ function falloDeConexion(e, nota){
     $('estado-api').textContent = '✖ ' + e.message + (nota ? ' ' + nota : '');
     $('campo-api').value = apiUrl();
     mostrarApiEnUso();
+  }
+  /* La tarjeta está plegada para no estorbar: si algo falla, se abre sola. */
+  if (MODO_APP === 'pwa' && $('caja-api')){
+    $('caja-api').classList.remove('oculto');
+    $('caja-api').open = true;
   }
   irA('panel');
 }
