@@ -8,8 +8,8 @@
  * comprimiendo con el zlib de Node. El dibujo se hace a 4x y se reduce por
  * promedio, que es la forma barata de conseguir bordes suaves.
  *
- * Diseño: cuadro azul marino, tres estantes blancos y el semáforo de
- * vencimientos a la izquierda (rojo/naranja/verde).
+ * Diseño: cuadro verde corporativo, tres estantes blancos y el semáforo de
+ * vencimientos a la izquierda (rojo/ámbar/verde de marca).
  *
  * Se exporta generar() para que el compilador lo llame si falta algún icono.
  */
@@ -20,11 +20,11 @@ const zlib = require('zlib');
 const RAIZ = path.resolve(__dirname, '..');
 const DESTINO = path.join(RAIZ, 'pwa');
 
-const AZUL = [15, 43, 70];        /* #0F2B46 */
+const MARCA = [27, 77, 62];       /* #1B4D3E · verde corporativo */
 const BLANCO = [255, 255, 255];
-const ROJO = [239, 68, 68];
-const NARANJA = [245, 158, 11];
-const VERDE = [34, 197, 94];
+const ROJO = [248, 113, 113];     /* #f87171 */
+const NARANJA = [251, 191, 36];   /* #fbbf24 */
+const VERDE = [82, 190, 128];     /* #52BE80 · verde de acento */
 
 /* ------------------------------------------------------------- PNG mínimo */
 let TABLA = null;
@@ -110,7 +110,7 @@ function dibujar(lado, maskable) {
         const dy = Math.max(radio - y, 0, y - (W - 1 - radio));
         dentro = dx * dx + dy * dy <= radio * radio;
       }
-      if (dentro) pintar(x, y, AZUL);
+      if (dentro) pintar(x, y, MARCA);
     }
   }
 

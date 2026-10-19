@@ -177,7 +177,14 @@ if (!fs.existsSync(rutaManifest)) {
 }
 if (manifest) {
   if (manifest.display !== 'standalone') problemas.push('El manifest no declara display: standalone');
-  if (manifest.theme_color !== '#0F2B46') problemas.push('El theme_color del manifest no coincide con la cabecera de la app');
+  /* El color de la barra del teléfono se lee de la propia app: así nunca se
+     quedan en desacuerdo la cabecera y el manifest. */
+  const metaTema = /<meta name="theme-color" content="([^"]+)"/.exec(webapp);
+  if (!metaTema) problemas.push('La app no declara <meta name="theme-color">');
+  else if (manifest.theme_color !== metaTema[1]) {
+    problemas.push('El theme_color del manifest (' + manifest.theme_color +
+      ') no coincide con la cabecera de la app (' + metaTema[1] + ')');
+  }
   if (!manifest.icons || manifest.icons.length < 2) problemas.push('El manifest necesita al menos 2 iconos');
   (manifest.icons || []).forEach(ic => {
     const f = path.join(PWA, ic.src);

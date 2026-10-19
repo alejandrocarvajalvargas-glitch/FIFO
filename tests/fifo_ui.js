@@ -38,6 +38,7 @@ function matchAll(re, s) { const out = []; let m; while ((m = re.exec(s))) out.p
 const html = fs.readFileSync(APP, 'utf8');
 const script = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const markup = html.slice(0, html.indexOf('<script>'));
+const css = html.slice(html.indexOf('<style>') + 7, html.indexOf('</style>'));
 
 /* ---------------------------------------------------------------- 1 · ids */
 const idsConRepeticion = matchAll(/\sid="([^"]+)"/g, html).map(m => m[1]);
@@ -258,7 +259,16 @@ check(/getUserMedia\(\{ video: \{ facingMode: \{ ideal: 'environment' \} \}/.tes
 check(script.indexOf('BarcodeDetector') !== -1, 'falta el lector nativo (BarcodeDetector)');
 check(/zxing-browser/.test(script), 'falta el lector alternativo (ZXing) para iPhone/Safari');
 check(/decodeFromImageElement/.test(script), 'ZXing no decodifica imágenes (la ruta de foto lo necesita)');
-check(/decodeFromVideoDevice/.test(script), 'ZXing no decodifica video (la cámara en vivo lo necesita)');
+check(/decodeFromCanvas/.test(script), 'ZXing no decodifica el recorte de la cámara (la ruta rápida en vivo)');
+check(/function recorteCentral\(/.test(script), 'la cámara analiza el cuadro completo: así nunca irá rápido');
+check(/imageSmoothingEnabled = false/.test(script),
+  'el recorte se suaviza: las barras finas se borrarían y el lector no vería nada');
+check(/Math\.round\(ox \+ vx \* MIRA\.x\)/.test(script),
+  'el recorte usa coordenadas fraccionarias: difumina el código de barras');
+check(/Promise\.resolve\(tarea\)/.test(script),
+  'ZXing responde a veces al instante (no con promesa) y esa lectura se perdería');
+check(/var MIRA = \{ x: 0\.15, y: 0\.28, ancho: 0\.70, alto: 0\.44 \}/.test(script),
+  'la franja que se lee no coincide con el recuadro que ve el usuario');
 check(/function cerrarEscaner\(/.test(script), 'falta cerrarEscaner(): la cámara quedaría encendida');
 check(/getTracks\(\)\.forEach/.test(script), 'cerrarEscaner() no apaga las pistas de la cámara');
 
@@ -299,6 +309,39 @@ check(/function sincronizarChips\(/.test(script) && /function sincronizarBusqued
 check(/id="busqueda-tabla"/.test(markup), 'falta el buscador de la tabla');
 check(/tabla-caja/.test(markup), 'la tabla no tiene contenedor con desplazamiento lateral');
 
+/* ---------------- 6c · identidad corporativa, menú lateral y dispositivos ---
+   Lo que hace que la app se vea como la marca y que se pueda usar igual en el
+   celular, en la tableta y en el computador. */
+check(/#1B4D3E/.test(css), 'la hoja de estilo no usa el verde corporativo #1B4D3E');
+check(/#52BE80/.test(css), 'falta el verde de acento #52BE80');
+check(/Plus Jakarta Sans/.test(html), 'no se carga la tipografía corporativa Plus Jakarta Sans');
+check(!/#0F2B46/.test(html), 'queda el azul anterior (#0F2B46) en algún rincón');
+
+check(/id="menu-lateral"/.test(markup), 'falta el menú lateral');
+check(/id="btn-menu"/.test(markup), 'falta el botón ☰ que abre el menú lateral');
+check(/id="fondo-menu"/.test(markup), 'falta la cortina que cierra el menú al tocar fuera');
+check(/class="menu-item on"/.test(markup), 'el menú lateral no marca la vista activa');
+check(/function abrirMenu\(/.test(script) && /function cerrarMenu\(/.test(script),
+  'el menú lateral no se abre o no se cierra');
+check(/querySelectorAll\('nav button, \.menu-item'\)/.test(script),
+  'las dos navegaciones (barra inferior y menú) no se marcan juntas');
+
+check(/function detectarDispositivo\(/.test(script), 'la app no distingue celular / tableta / computador');
+check(/data-dispositivo/.test(css) && /setAttribute\('data-dispositivo'/.test(script),
+  'la detección de dispositivo no cambia el diseño');
+check(/pointer:fine/.test(script), 'la detección de dispositivo no mira si hay ratón');
+check(/orientationchange/.test(script), 'el diseño no se reacomoda al girar el teléfono');
+
+check(/id="btn-scan-linterna"/.test(markup), 'falta el botón de linterna del escáner');
+check(/id="btn-scan-foto"/.test(markup), 'falta el botón "Tomar foto" dentro de la cámara');
+check(/function ajustarCamara\(/.test(script), 'la cámara no ajusta resolución ni enfoque');
+check(/focusMode/.test(script), 'la cámara no activa el enfoque continuo');
+check(/function mejorCodigo\(/.test(script), 'el escáner no elige la lectura más confiable del cuadro');
+check(/function precalentarEscaner\(/.test(script),
+  'el lector no se descarga al entrar: el primer escaneo tendría que esperar');
+check(/COLOR_EN_OSCURO/.test(script), 'los colores de estado no se adaptan al fondo oscuro');
+check(/#BE123C/.test(script), 'se perdió el color propio del estado «En alerta»');
+
 /* ------------------------------------------------- 7 · archivos de la PWA */
 function existe(p) { try { return fs.statSync(p).isFile(); } catch (e) { return false; } }
 function existeDir(p) { try { return fs.statSync(p).isDirectory(); } catch (e) { return false; } }
@@ -328,7 +371,7 @@ if (existeDir(PWA)) {
       check(man.start_url.indexOf('index.html') !== -1 || man.start_url === './',
         'start_url del manifest no apunta a index.html');
       check(man.display === 'standalone', 'el manifest no declara display: standalone');
-      check(man.theme_color === '#0F2B46', 'el theme_color del manifest no coincide con la cabecera');
+      check(man.theme_color === '#1B4D3E', 'el theme_color del manifest no coincide con la cabecera');
       check(Array.isArray(man.icons) && man.icons.length >= 2, 'el manifest necesita al menos 2 iconos');
       let grandes192 = 0, grandes512 = 0, maskables = 0;
       (man.icons || []).forEach(ic => {

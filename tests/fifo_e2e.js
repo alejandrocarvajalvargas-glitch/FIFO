@@ -131,8 +131,8 @@ eq(rep.criticos[0].desc, 'Leche entera 1 L', 'descripcion vacia en la hoja -> re
 eq(rep.criticos[0].proveedor, 'Lacteos del Valle', 'proveedor resuelto del CATALOGO');
 eq(rep.proximos.filter(x => x.id === 's3')[0].desc, 'Yogur fresa 900 g', 'descripcion propia respetada si existe');
 eq(rep.criticos[0].diasTexto, 'Vencido hace 3 d\u00edas', 'texto de dias');
-eq(rep.criticos[0].color, '#B91C1C', 'color de vencido');
-eq(rep.criticos[1].color, '#BE123C', 'color propio del estado Alerta');
+eq(rep.criticos[0].color, '#f87171', 'color de vencido (tono claro: el correo va sobre verde oscuro)');
+eq(rep.criticos[1].color, '#fb7185', 'color propio del estado Alerta');
 
 console.log('\n== enlaces al registro ==');
 eq(rep.criticos[0].linkHoja, 'https://docs.google.com/spreadsheets/d/ID_TEST/edit#gid=222&range=A2', 'link al rango exacto en la hoja');

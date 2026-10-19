@@ -416,25 +416,29 @@ function diasTexto_(dias) {
   return 'Vence en ' + dias + ' días';
 }
 
+/* Los colores de estado se ven en la app y en el correo, que comparten el
+   fondo verde oscuro corporativo. Por eso van en su tono CLARO (el semáforo
+   no cambia de significado: rojo vencido, rosa alerta, naranja próximo,
+   ámbar vigilancia, verde en regla) y el fondo es una capa translúcida. */
 function colorEstado_(estado) {
   switch (estado) {
-    case ESTADO.VENCIDO: return '#B91C1C';
-    case ESTADO.ALERTA: return '#BE123C';
-    case ESTADO.PROXIMO: return '#C2410C';
-    case ESTADO.VIGILANCIA: return '#A16207';
-    case ESTADO.EN_REGLA: return '#15803D';
-    default: return '#64748B';
+    case ESTADO.VENCIDO: return '#f87171';
+    case ESTADO.ALERTA: return '#fb7185';
+    case ESTADO.PROXIMO: return '#fb923c';
+    case ESTADO.VIGILANCIA: return '#fbbf24';
+    case ESTADO.EN_REGLA: return '#34d399';
+    default: return '#94a3b8';
   }
 }
 
 function fondoEstado_(estado) {
   switch (estado) {
-    case ESTADO.VENCIDO: return '#FEE2E2';
-    case ESTADO.ALERTA: return '#FFE4E6';
-    case ESTADO.PROXIMO: return '#FFEDD5';
-    case ESTADO.VIGILANCIA: return '#FEF9C3';
-    case ESTADO.EN_REGLA: return '#DCFCE7';
-    default: return '#F1F5F9';
+    case ESTADO.VENCIDO: return 'rgba(248,113,113,.16)';
+    case ESTADO.ALERTA: return 'rgba(251,113,133,.16)';
+    case ESTADO.PROXIMO: return 'rgba(251,146,60,.16)';
+    case ESTADO.VIGILANCIA: return 'rgba(251,191,36,.18)';
+    case ESTADO.EN_REGLA: return 'rgba(52,211,153,.16)';
+    default: return 'rgba(148,163,184,.16)';
   }
 }
 
@@ -566,21 +570,21 @@ function construirReporte_(cfg, tipo) {
   const proveedores = Object.keys(porProv).map(function (k) { return porProv[k]; })
     .sort(function (a, b) { return (b.vencidos - a.vencidos) || (b.lotes - a.lotes) || (a.proveedor > b.proveedor ? 1 : -1); });
 
-  /* Cabecera de alerta */
+  /* Cabecera de alerta (tonos claros: el correo va sobre verde oscuro) */
   let titulo, subtitulo, colorAlerta, fondoAlerta;
   if (vencidos.length > 0) {
     titulo = 'Alerta: ' + vencidos.length + ' lote(s) VENCIDO(S) en tienda/bodega' +
       (alertas.length ? ' y ' + alertas.length + ' en día de aviso' : '');
     subtitulo = 'Requieren retiro inmediato. ' + unidadesCriticas + ' unidades comprometidas en total.';
-    colorAlerta = '#B91C1C'; fondoAlerta = '#FEF2F2';
+    colorAlerta = '#f87171'; fondoAlerta = 'rgba(248,113,113,.12)';
   } else if (alertas.length > 0) {
     titulo = 'Alerta: ' + alertas.length + ' lote(s) cumplen hoy un día de aviso';
     subtitulo = 'Faltan ' + cfg.diasAlertaTexto + ' días para vencer: programar rotación FIFO o promoción para liberar el inventario a tiempo.';
-    colorAlerta = '#BE123C'; fondoAlerta = '#FFF1F2';
+    colorAlerta = '#fb7185'; fondoAlerta = 'rgba(251,113,133,.12)';
   } else {
     titulo = 'Todo en orden: hoy ningún lote cumple día de aviso';
     subtitulo = 'Sin vencidos y sin lotes en los días de aviso (' + cfg.diasAlertaTexto + ' días). Buen trabajo de rotación.';
-    colorAlerta = '#15803D'; fondoAlerta = '#F0FDF4';
+    colorAlerta = '#34d399'; fondoAlerta = 'rgba(52,211,153,.12)';
   }
   if (sinFecha.length > 0) {
     subtitulo += ' Hay ' + sinFecha.length + ' lote(s) sin fecha de vencimiento registrada; complétalos en la app.';
@@ -599,10 +603,10 @@ function construirReporte_(cfg, tipo) {
     colorAlerta: colorAlerta,
     fondoAlerta: fondoAlerta,
     kpis: [
-      { valor: vencidos.length, etiqueta: 'Lotes vencidos', color: '#B91C1C' },
-      { valor: alertas.length, etiqueta: 'En día de aviso', color: '#BE123C' },
-      { valor: unidadesCriticas, etiqueta: 'Unidades en alerta', color: '#0F2B46' },
-      { valor: lotesActivos, etiqueta: 'Lotes activos', color: '#64748B' }
+      { valor: vencidos.length, etiqueta: 'Lotes vencidos', color: '#f87171' },
+      { valor: alertas.length, etiqueta: 'En día de aviso', color: '#fb7185' },
+      { valor: unidadesCriticas, etiqueta: 'Unidades en alerta', color: '#fbbf24' },
+      { valor: lotesActivos, etiqueta: 'Lotes activos', color: '#94a3b8' }
     ],
     criticos: detalle,
     totalCriticos: criticos.length,
@@ -1103,7 +1107,8 @@ function crearHojasBase() {
       sh.getRange(1, 1, 1, d.encabezados.length).setValues([d.encabezados]);
     }
     const rango = sh.getRange(1, 1, 1, d.encabezados.length);
-    rango.setFontWeight('bold').setBackground('#0F2B46').setFontColor('#FFFFFF').setVerticalAlignment('middle');
+    /* Encabezado con el verde corporativo: la hoja también es de la marca. */
+    rango.setFontWeight('bold').setBackground('#1B4D3E').setFontColor('#FFFFFF').setVerticalAlignment('middle');
     sh.setFrozenRows(1);
     d.ancho.forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
     sh.getRange(1, 1, Math.max(sh.getMaxRows(), 2), d.encabezados.length).setVerticalAlignment('top');

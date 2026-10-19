@@ -81,7 +81,7 @@ La app detecta dónde está corriendo y elige la mejor ruta sola:
 
 | Dónde corre | Escanear | Cómo |
 |---|---|---|
-| **App instalada** (esta carpeta) | Cámara en vivo | `BarcodeDetector` del teléfono; si el navegador no lo tiene (iPhone), carga ZXing |
+| **App instalada** (esta carpeta) | Cámara en vivo | `BarcodeDetector` del teléfono; si el navegador no lo tiene (iPhone), carga ZXing. La lectura analiza solo el recuadro de la mira, con enfoque continuo, y avisa con un zumbido y una vibración. Hay **linterna** (si el teléfono la tiene) y **Tomar foto** como respaldo |
 | **Dentro de Apps Script** | Foto | Abre la cámara nativa; luego decodifica la imagen |
 
 Si la cámara no está disponible, siempre queda escribir el código a mano.

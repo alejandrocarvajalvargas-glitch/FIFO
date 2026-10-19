@@ -78,7 +78,7 @@ automatizado es el correo electrónico.
 | `docs/09-github.md` | **Repositorio de GitHub**: versiones, publicación de la app en GitHub Pages y pruebas automáticas (CI) |
 | `apps-script/Code.gs` | Código completo del motor de reportes + API de la app + menú (modalidad 2 archivos) |
 | `apps-script/FIFO_UnArchivo.gs` | **Versión generada: el motor + las dos interfaces en UN solo archivo** — es lo único que hay que pegar en Apps Script |
-| `apps-script/AppMovil.html` | **Fuente única de la interfaz móvil**, para la app de Apps Script y para la instalable |
+| `apps-script/AppMovil.html` | **Fuente única de la interfaz móvil**, para la app de Apps Script y para la instalable: un solo diseño que se adapta a celular, tableta y computador (menú ☰ o barra fija), escáner rápido con linterna y respaldo por foto |
 | `apps-script/ReporteHTML.html` | Plantilla HTML del correo (diseño corporativo, KPIs, tabla, enlaces) |
 | `pwa/` | **App instalable**: `index.html` (generado), manifest, service worker, íconos PNG y `README.md` con la publicación en Netlify Drop |
 | `tools/build-onepager.js` | Genera y verifica `FIFO_UnArchivo.gs` y `pwa/index.html` |
@@ -149,9 +149,9 @@ entregarse** con dobles de prueba que simulan las hojas, y con un navegador real
 | Prueba | Casos | Qué cubre |
 |---|---|---|
 | `tests/fifo_api.js` | 170 × 2 modos | la API completa: clave, búsqueda, guardado, validaciones, KPIs, filtros, orden FIFO, acciones, entrega de la interfaz, HTTP (`doPost` / `doGet?op=`), JSONP, la regla de avisos por hitos, la auditoría del catálogo, el **orden automático de SEGUIMIENTO**, el **semáforo de la columna L** y la **protección de las hojas** |
-| `tests/fifo_ui.js` | 178 | la interfaz y la app instalable: ids y selectores reales, el puente contra el servidor, las dos rutas de cámara, el estado «Alerta» con su filtro, la **pestaña Tabla con sus 7 columnas**, el diagnóstico y la autorreparación de la conexión y la coherencia de `pwa/` |
+| `tests/fifo_ui.js` | 206 | la interfaz y la app instalable: ids y selectores reales, el puente contra el servidor, las dos rutas de cámara, el **recorte de la mira sin suavizado y con coordenadas enteras**, la respuesta síncrona de ZXing, el estado «Alerta» con su filtro, la **pestaña Tabla con sus 7 columnas**, el **menú lateral**, la **detección de celular/tableta/computador**, la **paleta corporativa**, el diagnóstico y la autorreparación de la conexión y la coherencia de `pwa/` |
 | `tests/fifo_test.js` · `tests/fifo_e2e.js` · `tests/fifo_render.js` | — | motor de correo, plantilla y vista previa |
-| Navegador | — | la app instalable contra una API falsa que imita el contrato: entrar, buscar, guardar, filtrar, vender, ruta de la foto y ZXing desde el CDN |
+| Navegador | — | la app instalable contra una API falsa que imita el contrato: entrar, buscar, guardar, filtrar, vender, ruta de la foto y ZXing desde el CDN; además, un **EAN-13 de prueba** confirma que el recorte de la mira lee de verdad en celular y tableta |
 
 Las pruebas del correo comprueban, además:
 

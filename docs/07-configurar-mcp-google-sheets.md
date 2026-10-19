@@ -187,7 +187,7 @@ toques nada**:
 2. **Crear** el libro `FIFO_Control_Vencimientos`.
 3. **Crear las 4 hojas** con los encabezados exactos de `docs/01-modelo-datos.md`:
    `CATALOGO`, `SEGUIMIENTO`, `CONFIG`, `BITACORA_REPORTES`.
-4. **Formatear**: encabezados en negrita con fondo corporativo `#0F2B46` y texto blanco, fila 1
+4. **Formatear**: encabezados en negrita con fondo corporativo `#1B4D3E` y texto blanco, fila 1
    congelada, anchos de columna razonables, columnas de fecha con formato `dd/MM/yyyy` y
    `Código barra principal` como **texto** (para que no se pierdan los ceros a la izquierda).
 5. **Cargar `CONFIG`** completo (umbrales 30/90, plantilla de asunto, lista de ubicaciones) y un

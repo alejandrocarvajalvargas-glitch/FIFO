@@ -133,7 +133,7 @@ El objeto `data` que recibe la plantilla viene precalculado desde `construirRepo
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ ENCABEZADO (azul corporativo #0F2B46)                        │
+│ ENCABEZADO (verde corporativo #1B4D3E, letra menta)          │
 │   EMPRESA · Punto de venta                                   │
 │   Control de Inventario · Vencimientos (FIFO)                 │
 │   jueves 17 de octubre de 2026 · Reporte diario               │
@@ -160,6 +160,16 @@ El objeto `data` que recibe la plantilla viene precalculado desde `construirRepo
 │      correo automático (no responder)                         │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+El correo y la aplicación comparten **una sola identidad de marca**: verde profundo
+`#1B4D3E`, acento `#52BE80`, lienzo oscuro `#0d1a15`, superficie `#132A22` y bordes
+`#275d4c`. Los colores del semáforo llegan ya en su **tono claro** desde `Code.gs`
+(`colorEstado_()`/`fondoEstado_()`), porque sobre fondo oscuro los tonos oscuros no se
+leerían: rojo `#f87171` vencido, rosa `#fb7185` alerta, naranja `#fb923c` próximo,
+ámbar `#fbbf24` vigilancia, verde `#34d399` en regla. El fondo de cada pastilla es una
+capa translúcida (`rgba(...)`) precedida por un color sólido, para los clientes que no
+entienden `rgba`. En la **hoja de cálculo** el semáforo sigue siendo el de siempre
+(tono oscuro sobre fondo claro), porque ahí se imprime y se lee en blanco.
 
 ### Decisiones de diseño del correo (por qué así)
 

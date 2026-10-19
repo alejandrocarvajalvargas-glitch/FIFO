@@ -37,11 +37,11 @@ function masDias(n) {
 }
 
 const ESTADOS = {
-  Vencido: { color: '#B91C1C', fondo: '#FEE2E2', icono: '🔴', iconoNombre: 'vencido' },
-  'Próximo a vencer': { color: '#C2410C', fondo: '#FFEDD5', icono: '🟠' },
-  Vigilancia: { color: '#A16207', fondo: '#FEF9C3', icono: '🟡' },
-  'En regla': { color: '#15803D', fondo: '#DCFCE7', icono: '🟢' },
-  'Sin fecha': { color: '#64748B', fondo: '#F1F5F9', icono: '⚪' }
+  Vencido: { color: '#f87171', fondo: 'rgba(248,113,113,.16)', icono: '🔴', iconoNombre: 'vencido' },
+  'Próximo a vencer': { color: '#fb923c', fondo: 'rgba(251,146,60,.16)', icono: '🟠' },
+  Vigilancia: { color: '#fbbf24', fondo: 'rgba(251,191,36,.18)', icono: '🟡' },
+  'En regla': { color: '#34d399', fondo: 'rgba(52,211,153,.16)', icono: '🟢' },
+  'Sin fecha': { color: '#94a3b8', fondo: 'rgba(148,163,184,.16)', icono: '⚪' }
 };
 
 function estadoDe(dias) {

@@ -110,15 +110,36 @@ con ícono y ventana propia.
 
 El lector se elige solo, en cascada:
 
-1. **`BarcodeDetector`** — el lector del propio sistema (Chrome/Android ≥ 83, también
-   sirve para leer una foto). Sin descargas y muy rápido.
+1. **`BarcodeDetector`** — el lector del propio sistema (Chrome/Android ≥ 83; también
+   sirve para leer una foto). Sin descargas, usa el hardware y es el más rápido.
 2. **ZXing** (~110 KB comprimidos, desde CDN) — para Safari/iPhone, donde
-   `BarcodeDetector` no existe. Comprobado en vivo: la librería carga y expone
-   `BrowserMultiFormatOneDReader`.
+   `BarcodeDetector` no existe.
 3. **Entrada manual** — siempre disponible: escribir el código y pulsar **Buscar**.
 
 Comprobado también que si el navegador no trae `BarcodeDetector` (un Chrome de
 escritorio, por ejemplo) la app **cae al paso siguiente sin fallar**.
+
+#### Cómo se logró que leyera rápido
+
+La versión anterior analizaba **el cuadro completo** de la cámara en cada intento, con la
+resolución que entregara el teléfono. Eso es mucho trabajo por cuadro y la lectura se
+sentía lenta. Ahora:
+
+| Cambio | Por qué acelera |
+|---|---|
+| **Se analiza solo la franja de la mira** (`recorteCentral`) | Se procesan ~10 veces menos píxeles por cuadro: la misma lectura en una fracción del tiempo. |
+| **La franja es exactamente lo que el usuario ve** (`MIRA`) | El recorte se calcula sobre el trozo visible del video (`object-fit: cover`), así lo que está centrado en el recuadro es lo que se lee. |
+| **Coordenadas enteras y sin suavizado** (`Math.round`, `imageSmoothingEnabled = false`) | Interpolar difumina las barras finas de 1-2 px y el lector deja de verlas. Fue un fallo real detectado con un código EAN-13 de prueba. |
+| **~10 lecturas por segundo** (en vez de perseguir los 60 fps) | Suficiente para que se sienta instantáneo, y no funde la batería. |
+| **Enfoque continuo y 1280×720** (`applyConstraints`) | La cámara no se queda "buscando" el foco, que era otra fuente de espera. |
+| **ZXing se descarga al entrar** (`precalentarEscaner`) | El primer escaneo del día ya no espera la descarga de la librería. |
+| **Se elige la mejor lectura del cuadro** (`mejorCodigo`) | Prefiere EAN/UPC (códigos de producto) sobre cualquier otro formato y, a igualdad, el más largo. |
+| **`decodeFromCanvas` en vez de `decodeFromVideoDevice`** | ZXing lee el recorte ya listo, sin volver a dibujar el video. Ojo: en esta versión responde de forma **síncrona**, por eso todo pasa por `Promise.resolve(...)`. |
+| **Aviso inmediato**: zumbido + vibración | El operador sabe que leyó sin mirar la pantalla. |
+| **Linterna y "Tomar foto" dentro de la cámara** | Con poca luz o con un código arrugado/brillante, la foto nítida del sistema resuelve donde el video en vivo no puede. La foto se reduce a 1500 px antes de leerla, que es lo que ZXing resuelve al vuelo. |
+
+Nada de esto cambia el uso: se apunta, se escucha el zumbido y el código queda escrito.
+La entrada manual sigue estando para cuando el código está borroso o no existe.
 
 ### 2.3.1 Una sola interfaz para las dos rutas
 
@@ -129,11 +150,37 @@ está corriendo y actúa en consecuencia:
 |---|---|---|
 | Detección | existe `google.script.run` | no existe |
 | Comunicación | `google.script.run` | JSONP (`<script src="…&callback=…">`) |
-| Escanear | foto con la cámara nativa | cámara en vivo |
+| Escanear | foto con la cámara nativa | cámara en vivo (+ linterna y foto de respaldo) |
 | Cámara | bloqueada por Google (iframe de origen opaco) | funciona (origen propio y HTTPS) |
 | Dirección de la API | la de la propia app | editable en **Panel ▸ Conexión**, por si cambia |
 
 Así no hay dos interfaces que puedan desincronizarse: cada arreglo vale para las dos.
+
+### 2.3.2 Un solo diseño que se adapta al aparato
+
+La app mide la pantalla y **se reacomoda sola** (`detectarDispositivo()`), sin que el
+usuario elija nada. También se reacomoda al girar el teléfono.
+
+| | Celular (`< 700 px`) | Tableta (`700-1023 px`) | Computador (`≥ 1024 px` **con ratón**) |
+|---|---|---|---|
+| Menú | ☰ abre el menú lateral deslizante | igual | barra fija a la izquierda |
+| Barra inferior | sí (Registrar · Lista · Tabla · Panel) | sí | no |
+| Ancho de contenido | completo | 920 px | 1160 px |
+| KPIs | 2 columnas | 4 columnas | 4 columnas |
+| Tabla | se desliza de lado (con aviso) | se desliza | cabe sin desplazar |
+
+La detección mira el ancho **y** si hay puntero fino: una tableta táctil de 10" no se
+trata como computador, porque el menú fijo no tendría sentido sin ratón.
+
+### 2.3.3 Identidad de marca
+
+La app, el correo y la vista previa comparten la misma paleta: verde profundo
+`#1B4D3E`, acento `#52BE80`, lienzo `#0d1a15`, superficies `#132A22`/`#19362c`, bordes
+`#275d4c` y tipografía **Plus Jakarta Sans** (con respaldo del sistema si no hay
+internet). Los **colores del semáforo no cambian de significado**: rojo vencido, rosa
+alerta, naranja próximo, ámbar vigilancia, verde en regla. Como el fondo ahora es oscuro,
+se usan sus tonos claros (`aclarar()`) y el fondo de cada pastilla es una capa
+translúcida (`tinte()`).
 
 ### 2.4 Por qué la app instalable habla por JSONP y no por `fetch`
 
@@ -308,6 +355,15 @@ nada cambió, no escribe. El orden entre lotes del mismo día es el de llegada (
 Si la hoja tiene la fila de encabezado y **fórmulas** en la tabla, el script no ordena: reescribir
 las filas borraría esas fórmulas.
 
+### Moverse por la app (menú lateral)
+El botón **☰** de la cabecera abre el menú, que lleva a las cuatro vistas —**Registrar**,
+**Lista**, **Tabla** y **Panel**— y además ofrece **Actualizar**, **Instalar** (solo si el
+navegador lo permite), **Conexión** (solo en la app instalable) y, al pie, el modo en que se
+está usando la app y el tamaño de pantalla detectado. El menú se cierra tocando fuera, con
+la tecla *Esc* o al elegir una vista. En el computador no hay ☰: el mismo menú queda **fijo a
+la izquierda** y la barra inferior desaparece. El número junto a *Lista* indica cuántos lotes
+están **vencidos o en día de aviso**.
+
 ### Instalarlo en el teléfono
 
 Hay dos formas. La primera no necesita hosting, pero escanea por foto; la segunda es la
@@ -377,9 +433,9 @@ reales de `SEGUIMIENTO` y escribe cada valor en la columna que le corresponde
 | Prueba | Qué cubre | Estado |
 |---|---|---|
 | `tests/fifo_api.js` | **170 casos**: clave, búsqueda por código de barras / item / texto / proveedor, guardado con las 15 columnas en su sitio, validaciones, KPIs, filtros, orden FIFO, acciones, entrega de la interfaz, **API HTTP (`doPost` / `doGet?op=`)**, **JSONP**, **la regla de avisos por hitos (un solo correo con la lista, y silencio cuando no hay hitos ni vencidos)**, la **auditoría del catálogo** (detecta las filas corridas de columna), el **orden automático de SEGUIMIENTO** (ascendente, sin perder filas, recalcula L y M) y el **semáforo y la protección de las hojas** | verde en maestro y en bundle |
-| `tests/fifo_ui.js` | **178 comprobaciones estáticas** de la interfaz y de la app instalable: ids que existen, selectores válidos, el puente contra el despachador del servidor en los dos sentidos, **la traducción de argumentos ejecutada de verdad**, las dos rutas de cámara, **el estado «Alerta» y su filtro**, **la pestaña Tabla con sus 7 columnas y sus filtros sincronizados**, **el diagnóstico y la autorreparación de la conexión** y la coherencia de `pwa/` (index idéntico, manifest, íconos PNG con las medidas que declara, service worker) | verde |
+| `tests/fifo_ui.js` | **206 comprobaciones estáticas** de la interfaz y de la app instalable: ids que existen, selectores válidos, el puente contra el despachador del servidor en los dos sentidos, **la traducción de argumentos ejecutada de verdad**, las dos rutas de cámara, **el recorte de la mira sin suavizado y con coordenadas enteras**, **la respuesta síncrona de ZXing**, **el estado «Alerta» y su filtro**, **la pestaña Tabla con sus 7 columnas y sus filtros sincronizados**, **el menú lateral, la detección de celular/tableta/computador y la paleta corporativa**, **el diagnóstico y la autorreparación de la conexión** y la coherencia de `pwa/` (index idéntico, manifest, íconos PNG con las medidas que declara, service worker) | verde |
 | `tests/fifo_test.js` · `fifo_e2e.js` · `fifo_render.js` | motor de correo, **regla de los días de aviso (estado «Alerta» solo en 3/8/15/30 y recta final)**, plantilla y vista previa | verde |
-| Prueba de navegador | la app instalable servida por HTTPS contra una **API falsa que imita el contrato**: entrar con clave, buscar, guardar, filtrar, vender, la ruta de la foto y la carga de ZXing desde el CDN | sin errores de consola |
+| Prueba de navegador | la app instalable servida por HTTPS contra una **API falsa que imita el contrato**: entrar con clave, buscar, guardar, filtrar, vender, la ruta de la foto y la carga de ZXing desde el CDN. Además se comprobó con un **código EAN-13 de prueba** (generado en el propio navegador) que el recorte de la mira lo lee de verdad en celular vertical, celular horizontal y tableta, y que **no inventa lecturas** cuando el código no está | sin errores de consola |
 
 ```
 node fifo_api.js            → Code.gs maestro
@@ -401,6 +457,20 @@ existe):
    de la nueva, porque la respuesta lenta llegaba después. Se corrigió con un número de
    secuencia: la respuesta que llega tarde se descarta.
 
+Y **el escáner rápido tuvo dos fallos que solo aparecieron al probarlo con un código de
+verdad** (un EAN-13 generado en el navegador), no en las pruebas estáticas:
+
+3. El recorte usaba **coordenadas fraccionarias**, así que el navegador interpolaba la
+   imagen y difuminaba las barras de 1-2 px: el lector devolvía "no se detectó ningún
+   código". Se corrigió redondeando la ventana y desactivando el suavizado
+   (`imageSmoothingEnabled = false`).
+4. En la versión de ZXing que usa la app, `decodeFromCanvas` responde **de inmediato**
+   (no devuelve una promesa), así que `.then()` sobre el resultado lanzaba una excepción
+   silenciosa y la lectura se perdía. Ahora todo pasa por `Promise.resolve(...)`, que
+   acepta las dos formas de respuesta.
+
+Los dos quedaron cubiertos con comprobaciones en `fifo_ui.js` para que no vuelvan.
+
 ---
 
 ## 7. Problemas conocidos y soluciones
@@ -409,7 +479,7 @@ existe):
 |---|---|
 | **La clave correcta no entra: vuelve a la pantalla de acceso** | Estás usando una versión ya publicada con el error corregido en `docs/08` §7. Republica: **Implementar ▸ Administrar implementaciones ▸ ✏️ ▸ Versión: nueva versión**. En el código actual el éxito del arranque devuelve `claveConfigurada`, no `requiereClave`. |
 | "No se pudo abrir la cámara" | Falta el permiso en el navegador. En Chrome: candado de la barra de direcciones ▸ Permisos ▸ Cámara ▸ Permitir. La app siempre deja escribir el código a mano. |
-| En iPhone el escáner tarda en abrir la primera vez | Está descargando ZXing (~110 KB comprimidos). Después queda en caché. |
+| En iPhone el escáner tarda en abrir la primera vez | Está descargando ZXing (~110 KB comprimidos). Al entrar a la app ya se descarga en segundo plano, así que en la práctica ya está listo; si no, queda en caché tras el primer uso. |
 | "No se pudo cargar el lector (revisa la conexión)" | El CDN está bloqueado en esa red. Alternativa: entrada manual, o cambiar `ZXING_URL` por otro CDN en `AppMovil.html` y regenerar el bundle. |
 | Los cambios no aparecen en el celular | Falta **implementar una versión nueva** (sección 3, aviso). |
 | El escaneo no lee códigos largos o borrosos | Acercar a 10-15 cm, con luz, y mantener quieto dentro del marco. Los códigos con reflejo en bolsas plásticas suelen requerir dos intentos. |

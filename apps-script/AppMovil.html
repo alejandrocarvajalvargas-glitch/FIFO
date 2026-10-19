@@ -3,63 +3,171 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0F2B46">
+<meta name="theme-color" content="#1B4D3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FIFO">
 <title>FIFO · Control de Vencimientos</title>
+<!-- Tipografía corporativa (Plus Jakarta Sans, la del dashboard de marca).
+     Si no hay internet, la app usa la letra del sistema: nunca se queda en
+     blanco ni espera a la fuente para funcionar. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
 <style>
+  /* =====================================================================
+     FIFO · Hoja de estilo única (sirve a la app instalable y a la que
+     corre dentro de Apps Script).
+
+     Identidad corporativa: verde #1B4D3E con acento #52BE80 y tipografía
+     Plus Jakarta Sans, igual que el dashboard de referencia.
+
+     Regla de oro: los colores de ESTADO del semáforo (vencido, alerta,
+     próximo, vigilancia, en regla) NO son decoración, son información.
+     Se mantienen (en su versión clara, para que se lean sobre oscuro) y
+     nunca se confunden con el verde de marca.
+     ===================================================================== */
   :root{
-    --azul:#0F2B46; --azul-claro:#1B4A72; --fondo:#F1F5F9; --linea:#E2E8F0;
-    --texto:#1E293B; --gris:#64748B; --blanco:#FFFFFF;
-    --rojo:#B91C1C; --rojo-f:#FEE2E2;
-    --naranja:#C2410C; --naranja-f:#FFEDD5;
-    --amarillo:#A16207; --amarillo-f:#FEF9C3;
-    --verde:#15803D; --verde-f:#DCFCE7;
-    --gris-f:#F1F5F9;
+    /* ---------- marca ---------- */
+    --marca:#1B4D3E; --marca-claro:#256350; --marca-osc:#113329;
+    --marca-borde:#275d4c; --marca-tenue:rgba(82,190,128,.12);
+    --acento:#52BE80; --acento-texto:#a7f3d0; --acento-borde:rgba(82,190,128,.30);
+
+    /* ---------- lienzo y superficies ---------- */
+    --fondo:#0d1a15; --fondo-2:#11221c;
+    --superficie:#132A22; --superficie-2:#19362c; --superficie-3:#1d3d32;
+    --linea:#235042; --linea-fuerte:#2f6352; --hundido:#0f211b;
+    --texto:#f1f5f9; --gris:#94a3b8;
+
+    /* ---------- estados del semáforo ---------- */
+    --rojo:#f87171; --rojo-f:rgba(248,113,113,.13);
+    --alerta:#BE123C;
+    --naranja:#fb923c; --naranja-f:rgba(251,146,60,.13);
+    --amarillo:#fbbf24; --amarillo-f:rgba(251,191,36,.14);
+    --verde:#34d399; --verde-f:rgba(52,211,153,.13);
+    --cielo:#38bdf8; --cielo-f:rgba(56,189,248,.13);
+
+    --sombra:0 12px 28px -16px rgba(0,0,0,.75);
+    --radio:16px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;height:100%}
+  html,body{margin:0;padding:0;min-height:100%}
+  html{-webkit-text-size-adjust:100%}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    background:var(--fondo); color:var(--texto); font-size:16px; line-height:1.4;
-    overscroll-behavior-y:contain;
+    font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--texto); font-size:16px; line-height:1.45; background-color:var(--fondo);
+    background-image:
+      radial-gradient(at 0% 0%, rgba(27,77,62,.42) 0px, transparent 52%),
+      radial-gradient(at 100% 100%, rgba(17,51,41,.55) 0px, transparent 55%);
+    background-attachment:fixed; overscroll-behavior-y:contain; min-height:100vh;
   }
   .oculto{display:none !important}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-track{background:var(--fondo-2)}
+  ::-webkit-scrollbar-thumb{background:var(--marca);border-radius:5px}
+  ::selection{background:var(--acento);color:#08281c}
 
   /* ---------- cabecera ---------- */
   header{
-    background:var(--azul); color:#fff; padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
-    position:sticky; top:0; z-index:20; box-shadow:0 1px 4px rgba(0,0,0,.18);
+    background:rgba(19,42,34,.93); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--marca-borde);
+    padding:calc(9px + env(safe-area-inset-top)) 12px 9px;
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; gap:10px;
   }
-  header h1{margin:0;font-size:16px;font-weight:700;letter-spacing:.2px}
-  header .sub{font-size:11.5px;opacity:.8;margin-top:1px}
+  header .marca-icono{
+    width:40px;height:40px;flex:0 0 auto;border-radius:13px;font-size:19px;
+    background:linear-gradient(135deg,#276e58,#113329); border:1px solid #3b8c73;
+    display:flex;align-items:center;justify-content:center
+  }
+  header .titulos{min-width:0;flex:1}
+  header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.1px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  header .sub{font-size:11.5px;color:var(--acento-texto);opacity:.72;margin-top:1px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   header .punto{
-    position:absolute;right:12px;top:calc(14px + env(safe-area-inset-top));
-    font-size:11px;background:rgba(255,255,255,.16);padding:3px 9px;border-radius:999px
+    flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+    background:var(--marca-tenue);color:var(--acento-texto);border:1px solid var(--acento-borde)
   }
+  .btn-menu{
+    flex:0 0 auto;font-size:17px;line-height:1;padding:11px 12px;border-radius:12px;
+    background:var(--superficie-3);color:var(--acento-texto);border:1px solid var(--linea-fuerte)
+  }
+  .btn-menu:active{background:var(--marca-claro)}
+
+  /* ---------- menú lateral ---------- */
+  .menu-lateral{
+    position:fixed;top:0;bottom:0;left:0;width:274px;z-index:45;
+    background:linear-gradient(180deg,#162e26,#0f211b);
+    border-right:1px solid var(--marca-borde);
+    display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 12px 14px;
+    transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);
+    box-shadow:0 0 40px rgba(0,0,0,.6);overflow-y:auto
+  }
+  .menu-lateral.abierto{transform:none}
+  .menu-marca{display:flex;align-items:center;gap:11px;padding:4px 6px 14px;
+    border-bottom:1px solid var(--linea);margin-bottom:12px}
+  .menu-marca .ic{
+    width:44px;height:44px;border-radius:14px;font-size:21px;flex:0 0 auto;
+    background:linear-gradient(135deg,#276e58,#113329);border:1px solid #3b8c73;
+    display:flex;align-items:center;justify-content:center
+  }
+  .menu-marca b{display:block;font-size:15px;font-weight:800;letter-spacing:.2px}
+  .menu-marca span{font-size:11px;color:var(--acento-texto);opacity:.72}
+  .menu-lista{display:flex;flex-direction:column;gap:4px}
+  .menu-item{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:none;color:var(--acento-texto);border:none;border-left:3px solid transparent;
+    border-radius:12px;padding:13px 12px;font-size:14.5px;font-weight:700
+  }
+  .menu-item .ic{font-size:18px;width:22px;text-align:center}
+  .menu-item .cuenta{margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;
+    background:var(--marca-tenue);border:1px solid var(--acento-borde);color:var(--acento-texto)}
+  .menu-item:hover,.menu-item.on{background:var(--superficie-3);color:#fff;border-left-color:var(--acento)}
+  .menu-item.on{font-weight:800}
+  .menu-seccion{margin:16px 6px 7px;font-size:10.5px;font-weight:800;letter-spacing:1.1px;
+    text-transform:uppercase;color:var(--gris)}
+  .menu-pie{margin-top:auto;padding-top:14px}
+  .menu-pie button{
+    width:100%;display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:7px;
+    background:var(--superficie-2);color:var(--acento-texto);border:1px solid var(--linea-fuerte);
+    border-radius:12px;padding:11px 12px;font-size:13px;font-weight:700
+  }
+  .menu-info{font-size:10.5px;color:var(--gris);line-height:1.5;margin-top:8px;padding:0 4px;
+    word-break:break-word;white-space:pre-line}
+  .fondo-menu{position:fixed;inset:0;background:rgba(6,16,12,.62);z-index:40;
+    backdrop-filter:blur(2px)}
 
   /* ---------- estructura ---------- */
-  main{padding:12px 12px calc(84px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
-  .tarjeta{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:14px;margin-bottom:12px}
-  .tarjeta h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--gris)}
-  label{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:12px 0 5px}
+  main{padding:12px 12px calc(92px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto;width:100%}
+  .tarjeta{
+    background:var(--superficie);border:1px solid var(--marca-borde);border-radius:var(--radio);
+    padding:15px;margin-bottom:12px;box-shadow:var(--sombra)
+  }
+  .tarjeta h2{margin:0 0 11px;font-size:11.5px;font-weight:800;text-transform:uppercase;
+    letter-spacing:1px;color:var(--acento-texto);opacity:.75}
+  label{display:block;font-size:12.5px;font-weight:700;color:var(--acento-texto);margin:13px 0 5px}
   label:first-child{margin-top:0}
   input,select,textarea{
     width:100%;padding:12px;font-size:16px;font-family:inherit;color:var(--texto);
-    border:1.5px solid var(--linea);border-radius:9px;background:#fff;
+    border:1.5px solid var(--linea-fuerte);border-radius:11px;background:var(--hundido)
   }
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--azul-claro)}
+  input::placeholder,textarea::placeholder{color:#5f7a88}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acento);
+    box-shadow:0 0 0 3px var(--marca-tenue)}
+  select option{background:var(--hundido);color:var(--texto)}
   textarea{resize:vertical;min-height:60px}
   .fila{display:flex;gap:8px}
   .fila > *{flex:1}
-  .ayuda{font-size:11.5px;color:var(--gris);margin-top:5px}
-  .ayuda.ok{color:var(--verde)}
+  .ayuda{font-size:11.5px;color:var(--gris);margin-top:6px;line-height:1.5}
+  .ayuda.ok{color:var(--acento)}
   .ayuda.malo{color:var(--rojo)}
 
   /* ---------- tarjeta plegable (Conexión) ---------- */
-  details > summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:8px}
+  details > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
+    -webkit-tap-highlight-color:transparent}
   details > summary::-webkit-details-marker{display:none}
   details > summary h2{margin:0}
   details > summary .ayuda{margin:0;flex:1}
@@ -68,119 +176,233 @@
   .cuerpo-api{margin-top:12px}
 
   /* ---------- botones ---------- */
-  button{font-family:inherit;font-size:15px;font-weight:600;border:none;border-radius:9px;padding:12px 14px;cursor:pointer}
-  .btn-azul{background:var(--azul);color:#fff}
-  .btn-azul:active{background:var(--azul-claro)}
-  .btn-gris{background:var(--gris-f);color:var(--texto);border:1px solid var(--linea)}
-  .btn-rojo{background:var(--rojo-f);color:var(--rojo);border:1px solid #FCA5A5}
-  .btn-naranja{background:var(--naranja-f);color:var(--naranja);border:1px solid #FDBA74}
-  .btn-verde{background:var(--verde-f);color:var(--verde);border:1px solid #86EFAC}
+  button{font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:12px;
+    padding:12px 14px;cursor:pointer;transition:transform .12s,filter .12s,background .15s}
+  button:active{transform:scale(.985)}
+  .btn-azul,.btn-marca{
+    background:linear-gradient(135deg,#1B4D3E,#256350);color:#fff;
+    border:1px solid var(--acento-borde);box-shadow:0 8px 20px -12px rgba(0,0,0,.9)
+  }
+  .btn-azul:active,.btn-marca:active{filter:brightness(1.12)}
+  .btn-gris{background:var(--superficie-3);color:var(--acento-texto);border:1px solid var(--linea-fuerte)}
+  .btn-gris:hover{background:var(--marca-claro);color:#fff}
+  .btn-rojo{background:var(--rojo-f);color:#fca5a5;border:1px solid rgba(248,113,113,.4)}
+  .btn-naranja{background:var(--naranja-f);color:#fdba74;border:1px solid rgba(251,146,60,.4)}
+  .btn-verde{background:var(--verde-f);color:var(--acento);border:1px solid rgba(52,211,153,.4)}
   .btn-ancho{width:100%;display:block}
   .btn-grande{font-size:17px;padding:16px}
   button[disabled]{opacity:.5}
   .btn-scan{
-    background:linear-gradient(135deg,#1B4A72,#0F2B46);color:#fff;font-size:18px;padding:18px;
-    display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(15,43,70,.28)
+    background:linear-gradient(135deg,#276e58,#113329);color:#fff;font-size:18px;padding:18px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    border:1px solid var(--acento-borde);box-shadow:0 14px 30px -18px rgba(0,0,0,.95)
   }
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
-  .chip{border:1px solid var(--linea);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;color:#475569}
-  .chip.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{border:1px solid var(--linea-fuerte);background:var(--superficie-2);border-radius:999px;
+    padding:7px 12px;font-size:12.5px;font-weight:700;color:var(--acento-texto)}
+  .chip:hover{background:var(--superficie-3)}
+  .chip.on{background:linear-gradient(135deg,#1B4D3E,#256350);color:#fff;border-color:var(--acento)}
 
   /* ---------- producto ---------- */
-  .producto{border:1.5px solid var(--linea);border-radius:10px;padding:11px;background:#F8FAFC}
-  .producto .n{font-size:15px;font-weight:700}
-  .producto .m{font-size:12px;color:var(--gris);margin-top:2px}
-  .aviso{background:var(--amarillo-f);border:1px solid #FDE68A;color:#854D0E;border-radius:9px;padding:10px;font-size:13px;margin-top:10px}
+  .producto{border:1px solid var(--linea-fuerte);border-radius:12px;padding:12px;
+    background:var(--superficie-2);border-left:4px solid var(--acento)}
+  .producto .n{font-size:15px;font-weight:800}
+  .producto .m{font-size:12px;color:var(--gris);margin-top:3px}
+  .aviso{background:var(--amarillo-f);border:1px solid rgba(251,191,36,.4);color:#fde68a;
+    border-radius:11px;padding:11px;font-size:13px;margin-top:10px}
 
   /* ---------- semáforo / lista ---------- */
-  .reg{background:#fff;border:1px solid var(--linea);border-left-width:5px;border-radius:11px;padding:12px;margin-bottom:9px}
+  .reg{background:var(--superficie);border:1px solid var(--marca-borde);border-left:5px solid var(--marca);
+    border-radius:14px;padding:13px;margin-bottom:9px;box-shadow:var(--sombra)}
   .reg .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-  .reg .desc{font-size:15px;font-weight:700;line-height:1.25}
-  .reg .meta{font-size:12px;color:var(--gris);margin-top:3px}
-  .reg .dias{font-size:13px;font-weight:800;white-space:nowrap;text-align:right}
-  .reg .estado{font-size:11px;font-weight:700;color:#fff;background:var(--azul);display:inline-block;padding:2px 8px;border-radius:999px;margin-top:4px}
-  .reg .acciones{display:flex;gap:7px;margin-top:10px}
-  .reg .acciones button{flex:1;padding:9px;font-size:13px}
-  .vacio{text-align:center;color:var(--gris);font-size:14px;padding:26px 10px}
+  .reg .desc{font-size:15px;font-weight:800;line-height:1.25;color:#fff}
+  .reg .meta{font-size:12px;color:var(--gris);margin-top:4px}
+  .reg .dias{font-size:14px;font-weight:800;white-space:nowrap;text-align:right}
+  .reg .estado{font-size:10.5px;font-weight:800;color:#08281c;background:var(--acento);
+    display:inline-block;padding:3px 9px;border-radius:999px;margin-top:5px;text-transform:uppercase;
+    letter-spacing:.4px}
+  .reg .acciones{display:flex;gap:7px;margin-top:11px}
+  .reg .acciones button{flex:1;padding:10px;font-size:13px}
+  .vacio{text-align:center;color:var(--gris);font-size:14px;padding:28px 10px}
 
   /* ---------- tabla (vista plana) ---------- */
-  .tabla-caja{background:#fff;border:1px solid var(--linea);border-radius:11px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table.datos{border-collapse:collapse;width:100%;min-width:680px;font-size:12.5px}
+  .tabla-caja{background:var(--superficie);border:1px solid var(--marca-borde);border-radius:14px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--sombra)}
+  table.datos{border-collapse:collapse;width:100%;min-width:700px;font-size:12.5px}
   table.datos th{
-    position:sticky;top:0;z-index:1;background:#0F2B46;color:#fff;text-align:left;
-    font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;padding:8px 9px;white-space:nowrap
+    position:sticky;top:0;z-index:1;background:linear-gradient(180deg,#1B4D3E,#143c31);color:#fff;
+    text-align:left;font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    padding:10px 9px;white-space:nowrap;border-bottom:1px solid var(--marca-borde)
   }
-  table.datos td{padding:8px 9px;border-bottom:1px solid var(--linea);vertical-align:top}
-  table.datos tbody tr:nth-child(even){background:#F8FAFC}
+  table.datos td{padding:9px;border-bottom:1px solid var(--linea);vertical-align:top}
+  table.datos tbody tr:nth-child(even){background:rgba(82,190,128,.045)}
+  table.datos tbody tr:hover{background:rgba(82,190,128,.10)}
   table.datos tbody tr:last-child td{border-bottom:none}
-  table.datos td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;white-space:nowrap}
+  table.datos td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;white-space:nowrap;color:var(--acento-texto)}
   table.datos td.cen{text-align:center;white-space:nowrap}
   table.datos td.num{text-align:center;font-weight:800;white-space:nowrap}
-  .pastilla{display:inline-block;color:#fff;font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:999px;white-space:nowrap}
+  .pastilla{display:inline-block;font-weight:800;font-size:10.5px;padding:3px 8px;border-radius:999px;
+    white-space:nowrap;border:1px solid transparent}
 
   /* ---------- kpis ---------- */
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-  .kpi{background:#fff;border:1px solid var(--linea);border-top:4px solid var(--azul);border-radius:11px;padding:13px}
-  .kpi .v{font-size:27px;font-weight:800;line-height:1}
-  .kpi .e{font-size:11.5px;color:var(--gris);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-  .barra{height:9px;border-radius:999px;overflow:hidden;display:flex;margin:6px 0 10px}
+  .kpi{background:linear-gradient(180deg,var(--superficie),#101f1a);border:1px solid var(--marca-borde);
+    border-top:4px solid var(--marca);border-radius:14px;padding:14px;box-shadow:var(--sombra)}
+  .kpi .v{font-size:29px;font-weight:800;line-height:1;letter-spacing:-.5px}
+  .kpi .e{font-size:10.5px;color:var(--gris);margin-top:6px;font-weight:800;text-transform:uppercase;
+    letter-spacing:.7px}
+  .barra{height:11px;border-radius:999px;overflow:hidden;display:flex;margin:8px 0 12px;
+    background:rgba(0,0,0,.35)}
   .barra span{display:block;height:100%}
-  .leyenda{display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--linea)}
+  .leyenda{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 0;
+    border-bottom:1px dashed var(--linea)}
   .leyenda:last-child{border-bottom:none}
+  .leyenda .cuenta{margin-left:auto;font-weight:800}
   .punto-color{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 
-  /* ---------- navegación inferior ---------- */
+  /* ---------- navegación inferior (celular y tableta) ---------- */
   nav{
-    position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linea);
-    display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:20
+    position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
+    background:rgba(19,42,34,.96);backdrop-filter:blur(10px);border-top:1px solid var(--marca-borde);
+    padding-bottom:env(safe-area-inset-bottom)
   }
   nav button{
-    flex:1;background:none;border-radius:0;padding:9px 4px 10px;font-size:10.5px;font-weight:600;
+    flex:1;background:none;border-radius:0;padding:9px 4px 10px;font-size:10.5px;font-weight:700;
     color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:3px
   }
   nav button .ic{font-size:19px;line-height:1}
-  nav button.on{color:var(--azul)}
+  nav button.on{color:var(--acento)}
   nav button.on .ic{transform:translateY(-1px)}
 
   /* ---------- overlays ---------- */
   .overlay{
-    position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:50;
+    position:fixed;inset:0;background:rgba(5,13,10,.8);z-index:50;
     display:flex;align-items:center;justify-content:center;padding:18px
   }
-  .overlay .caja{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:380px}
-  .overlay .caja h3{margin:0 0 6px;font-size:17px}
+  .overlay .caja{background:var(--superficie);border:1px solid var(--marca-borde);border-radius:18px;
+    padding:20px;width:100%;max-width:390px;box-shadow:0 24px 60px -20px rgba(0,0,0,.9)}
+  .overlay .caja h3{margin:0 0 6px;font-size:18px}
   .overlay .caja p{margin:0 0 14px;font-size:13.5px;color:var(--gris)}
+
+  /* ---------- escáner ---------- */
   #overlay-escaneo{background:#000;padding:0;flex-direction:column}
   .video-caja{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
   #video-escaneo{width:100%;height:100%;object-fit:cover}
   .mira{
-    position:absolute;left:8%;right:8%;top:31%;height:27%;border:3px solid rgba(255,255,255,.95);
-    border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.42)
+    position:absolute;left:15%;right:15%;top:28%;height:44%;border:3px solid rgba(82,190,128,.95);
+    border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)
   }
+  .mira::after{
+    content:'';position:absolute;left:6%;right:6%;top:50%;height:2px;
+    background:linear-gradient(90deg,transparent,rgba(82,190,128,.75),transparent);
+    animation:barrido 1.7s ease-in-out infinite
+  }
+  @keyframes barrido{0%,100%{transform:translateY(-26px)}50%{transform:translateY(26px)}}
   .scan-pie{
-    background:#0F2B46;color:#fff;padding:14px 14px calc(14px + env(safe-area-inset-bottom));
-    text-align:center;width:100%
+    background:linear-gradient(180deg,#132A22,#0f211b);color:#fff;width:100%;
+    padding:15px 14px calc(15px + env(safe-area-inset-bottom));text-align:center;
+    border-top:1px solid var(--marca-borde)
   }
-  .scan-pie .t{font-size:14px;font-weight:600}
-  .scan-pie .s{font-size:11.5px;opacity:.75;margin-top:3px}
-  .scan-pie button{margin-top:11px;background:rgba(255,255,255,.16);color:#fff;width:100%;padding:12px}
+  .scan-pie .t{font-size:15px;font-weight:800}
+  .scan-pie .s{font-size:11.5px;color:var(--acento-texto);opacity:.75;margin-top:4px}
+  .scan-botones{display:flex;gap:8px;margin-top:12px}
+  .scan-pie button{margin-top:0;flex:1;background:var(--superficie-3);color:var(--acento-texto);
+    border:1px solid var(--linea-fuerte);padding:12px}
+  .scan-pie button#btn-cerrar-escaneo{width:100%;margin-top:8px;background:transparent;
+    color:var(--gris);border-color:var(--linea)}
+  .scan-pie button.linterna-on{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2503;border-color:#fcd34d}
 
   #toast{
-    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));
-    background:#0F172A;color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;z-index:60;
-    max-width:88%;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.3)
+    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom));
+    background:var(--superficie-3);color:#fff;padding:12px 17px;border-radius:13px;font-size:14px;
+    z-index:60;max-width:88%;text-align:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.9);
+    border:1px solid var(--marca-borde)
   }
-  .girando{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);
-    border-top-color:#fff;border-radius:50%;animation:girar .7s linear infinite;vertical-align:-2px}
-  .girando-azul{border-color:#E2E8F0;border-top-color:#0F2B46;width:18px;height:18px}
+  .girando{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);
+    border-top-color:var(--acento);border-radius:50%;animation:girar .7s linear infinite;vertical-align:-2px}
+  .girando-azul{border-color:rgba(82,190,128,.35);border-top-color:var(--acento);width:18px;height:18px}
   @keyframes girar{to{transform:rotate(360deg)}}
+
+  /* =====================================================================
+     ADAPTACIÓN AL DISPOSITIVO
+     html[data-dispositivo] lo pone la app al arrancar y en cada giro o
+     cambio de tamaño: movil · tablet · escritorio.
+     ===================================================================== */
+
+  /* ---------- tableta ---------- */
+  html[data-dispositivo="tablet"] main{max-width:920px;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+  html[data-dispositivo="tablet"] .kpis{grid-template-columns:repeat(4,1fr)}
+  html[data-dispositivo="tablet"] .tarjeta{padding:17px}
+
+  /* En el teléfono y la tableta el nombre de la empresa necesita todo el
+     ancho: el icono de marca ya se ve en el menú lateral. */
+  html[data-dispositivo="movil"] header .marca-icono,
+  html[data-dispositivo="tablet"] header .marca-icono{display:none}
+
+  /* La tabla de 7 columnas no cabe en un teléfono: se desliza de lado. Con
+     menos relleno y la descripción algo más ancha, las filas no se estiran
+     tanto y se lee mejor sin tener que arrastrar de más. */
+  html[data-dispositivo="movil"] table.datos{font-size:12px}
+  html[data-dispositivo="movil"] table.datos th,
+  html[data-dispositivo="movil"] table.datos td{padding:7px 6px}
+  html[data-dispositivo="movil"] table.datos td:nth-child(3){min-width:150px}
+
+  /* ---------- escritorio ---------- */
+  html[data-dispositivo="escritorio"] body{padding-left:274px}
+  html[data-dispositivo="escritorio"] .menu-lateral{transform:none;box-shadow:none}
+  html[data-dispositivo="escritorio"] .btn-menu{display:none}
+  html[data-dispositivo="escritorio"] .fondo-menu{display:none !important}
+  html[data-dispositivo="escritorio"] nav{display:none}
+  html[data-dispositivo="escritorio"] main{max-width:1160px;padding:24px 24px 48px}
+  html[data-dispositivo="escritorio"] .kpis{grid-template-columns:repeat(4,1fr);gap:14px}
+  html[data-dispositivo="escritorio"] .tarjeta{padding:20px}
+  html[data-dispositivo="escritorio"] .reg{padding:16px}
+  html[data-dispositivo="escritorio"] .kpi .v{font-size:34px}
+  html[data-dispositivo="escritorio"] .btn-scan{padding:22px;font-size:19px}
+  html[data-dispositivo="escritorio"] .overlay .caja{max-width:440px}
+  html[data-dispositivo="escritorio"] .columnas{display:grid;grid-template-columns:1.35fr 1fr;
+    gap:14px;align-items:start}
+  html[data-dispositivo="escritorio"] .columnas > *{margin-bottom:0}
+  html[data-dispositivo="escritorio"] #vista-tabla .tabla-caja{margin-bottom:14px}
 </style>
 </head>
 <body>
 
+  <!-- ============ MENÚ LATERAL ============
+       En el celular entra deslizándose (☰); en el computador queda fijo a la
+       izquierda y el contenido se corre a su lado. -->
+  <aside class="menu-lateral" id="menu-lateral">
+    <div class="menu-marca">
+      <div class="ic">📦</div>
+      <div>
+        <b id="menu-empresa">FIFO</b>
+        <span id="menu-punto">Control de Vencimientos</span>
+      </div>
+    </div>
+    <div class="menu-seccion">Vistas</div>
+    <div class="menu-lista">
+      <button class="menu-item on" data-vista="registrar"><span class="ic">📷</span>Registrar</button>
+      <button class="menu-item" data-vista="lista"><span class="ic">📋</span>Lista<span class="cuenta oculto" id="menu-cuenta-lista"></span></button>
+      <button class="menu-item" data-vista="tabla"><span class="ic">📄</span>Tabla</button>
+      <button class="menu-item" data-vista="panel"><span class="ic">📊</span>Panel</button>
+    </div>
+    <div class="menu-pie">
+      <div class="menu-seccion" style="margin-top:2px">Aplicación</div>
+      <button id="menu-refrescar">🔄 Refrescar datos</button>
+      <button id="menu-instalar" class="oculto">⬇️ Instalar en el teléfono</button>
+      <button id="menu-conexion">⚙️ Conexión</button>
+      <div class="menu-info" id="menu-info"></div>
+    </div>
+  </aside>
+  <div class="fondo-menu oculto" id="fondo-menu"></div>
+
 <header>
-  <h1 id="titulo-empresa">Control de Vencimientos</h1>
-  <div class="sub" id="titulo-punto">Cargando…</div>
+  <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">☰</button>
+  <div class="marca-icono">📦</div>
+  <div class="titulos">
+    <h1 id="titulo-empresa">Control de Vencimientos</h1>
+    <div class="sub" id="titulo-punto">Cargando…</div>
+  </div>
   <div class="punto" id="reloj"></div>
 </header>
 
@@ -386,6 +608,10 @@
   <div class="scan-pie">
     <div class="t" id="scan-titulo">Apunta al código de barras</div>
     <div class="s" id="scan-motor"></div>
+    <div class="scan-botones">
+      <button id="btn-scan-linterna" class="oculto">🔦 Linterna</button>
+      <button id="btn-scan-foto">📷 Tomar foto</button>
+    </div>
     <button id="btn-cerrar-escaneo">Cancelar</button>
   </div>
 </div>
@@ -430,17 +656,47 @@ var EST = {
   cargando: false,
   sinConexion: false,
   intentoFabrica: false,
-  instalable: null
+  instalable: null,
+  dispositivo: 'movil',   /* movil · tablet · escritorio (se detecta sola) */
+  ancho: 0
 };
 
 var ZXING_URL = 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.2.1/umd/zxing-browser.min.js';
 var FORMATOS = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','codabar','qr_code','data_matrix'];
 var streamCamara = null, controlesZX = null, scanActivo = false, contadorCb = 0;
+var lonaRecorte = null, contextoAudio = null;
 
 function $(id){ return document.getElementById(id); }
 function esc(s){
   return String(s === null || s === undefined ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ---------- color de estado sobre fondo oscuro ----------
+   El semáforo no cambia de significado (rojo vencido, ámbar próximo…), pero
+   los tonos oscuros que se ven bien sobre papel blanco desaparecerían sobre
+   el verde profundo. Esta tabla traduce el color que manda el servidor a su
+   versión clara, y "tinte" lo vuelve un fondo translúcido. */
+var COLOR_EN_OSCURO = {
+  '#B91C1C': '#f87171',   /* vencido     */
+  '#BE123C': '#fb7185',   /* en alerta   */
+  '#C2410C': '#fb923c',   /* próximo     */
+  '#A16207': '#fbbf24',   /* vigilancia  */
+  '#15803D': '#34d399',   /* en regla    */
+  '#64748B': '#94a3b8'    /* sin fecha   */
+};
+
+function aclarar(hex){
+  var k = String(hex || '').toUpperCase();
+  return COLOR_EN_OSCURO[k] || hex || '#94a3b8';
+}
+
+function tinte(hex, alfa){
+  var h = String(hex || '').replace('#', '');
+  if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2);
+  var n = parseInt(h, 16);
+  if (isNaN(n)) return 'rgba(148,163,184,' + (alfa || 0.18) + ')';
+  return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + (alfa || 0.18) + ')';
 }
 
 /* =================== puente con el servidor =================== */
@@ -596,11 +852,57 @@ function leerClaveGuardada(){
   try { return localStorage.getItem('fifo_clave') || ''; } catch(e){ return ''; }
 }
 
+/* =================== dispositivo: celular / tableta / escritorio ========
+   La app se adapta sola. En el computador el menú lateral queda fijo y el
+   contenido se ensancha; en el celular el menú se desliza y manda la barra
+   inferior. Se recalcula al girar el teléfono o cambiar el tamaño de la
+   ventana, así que nunca hay que "elegir" el modo a mano. */
+
+function detectarDispositivo(){
+  var ancho = window.innerWidth || document.documentElement.clientWidth || 0;
+  var fino = true;
+  try { fino = window.matchMedia('(pointer:fine)').matches; } catch(e){}
+  /* Un celular grande o una tableta táctil no son "escritorio" aunque midan
+     más de 1024 px: hace falta un puntero fino (ratón) para el menú fijo. */
+  EST.dispositivo = (ancho >= 1024 && fino) ? 'escritorio' : (ancho >= 700 ? 'tablet' : 'movil');
+  EST.ancho = ancho;
+  document.documentElement.setAttribute('data-dispositivo', EST.dispositivo);
+  if (EST.dispositivo === 'escritorio') cerrarMenu();
+  pintarPieInfo();   /* el renglón que dice en qué aparato se está viendo */
+  return EST.dispositivo;
+}
+
+function etiquetaDispositivo(){
+  var nombre = EST.dispositivo === 'escritorio' ? 'computador'
+             : EST.dispositivo === 'tablet' ? 'tableta' : 'celular';
+  return nombre + (EST.ancho ? ' · ' + EST.ancho + ' px' : '');
+}
+
+/* =================== menú lateral =================== */
+
+function abrirMenu(){
+  $('menu-lateral').classList.add('abierto');
+  $('fondo-menu').classList.remove('oculto');
+  $('btn-menu').setAttribute('aria-expanded', 'true');
+}
+
+function cerrarMenu(){
+  $('menu-lateral').classList.remove('abierto');
+  $('fondo-menu').classList.add('oculto');
+  $('btn-menu').setAttribute('aria-expanded', 'false');
+}
+
+function alternarMenu(){
+  if ($('menu-lateral').classList.contains('abierto')) cerrarMenu();
+  else abrirMenu();
+}
+
 /* =================== arranque =================== */
 
 function iniciar(){
   $('reloj').textContent = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short' });
   EST.clave = leerClaveGuardada();
+  detectarDispositivo();
   configurarModo();
   arrancarSesion();
 }
@@ -626,6 +928,7 @@ function configurarModo(){
       e.preventDefault();
       EST.instalable = e;
       $('btn-instalar').classList.remove('oculto');
+      $('menu-instalar').classList.remove('oculto');
     });
     if (esIOS() && !esInstalada()){
       $('aviso-ios').classList.remove('oculto');
@@ -634,13 +937,20 @@ function configurarModo(){
   } else {
     $('texto-escanear').textContent = 'Escanear (foto)';
     $('ayuda-escanear').textContent = 'Abre la cámara del teléfono y toma una foto del código';
+    /* En Apps Script la conexión no se toca desde la app: el menú no la ofrece. */
+    $('menu-conexion').classList.add('oculto');
   }
   pintarPieInfo();
 }
 
 function pintarPieInfo(){
-  $('pie-info').textContent = 'Modo: ' + (MODO_APP === 'gas' ? 'app de Apps Script' : 'app instalable') +
-    (MODO_APP === 'pwa' ? ' · API ' + cortaApi(apiUrl()) : '');
+  var modo = (MODO_APP === 'gas' ? 'app de Apps Script' : 'app instalable');
+  var api = (MODO_APP === 'pwa' ? ' · API ' + cortaApi(apiUrl()) : '');
+  $('pie-info').textContent = 'Modo: ' + modo + api + ' · ' + etiquetaDispositivo();
+  if ($('menu-info')){
+    $('menu-info').textContent = modo + '\n' + etiquetaDispositivo() +
+      (MODO_APP === 'pwa' ? '\nAPI ' + cortaApi(apiUrl()) : '');
+  }
 }
 
 function esIOS(){
@@ -670,6 +980,9 @@ function sesionIniciada(r){
   $('error-clave').textContent = '';
   fechaPorDefecto();
   cargarLista();
+  /* Deja ZXing descargado mientras el usuario trabaja: cuando abra la cámara,
+     el lector ya está listo y no espera a internet. */
+  precalentarEscaner();
 }
 
 /** No hubo forma de hablar con el servidor: avisar y llevar directo a Conexión. */
@@ -738,6 +1051,8 @@ function entrar(){
 function pintarConfig(c){
   $('titulo-empresa').textContent = c.empresa || 'Control de Vencimientos';
   $('titulo-punto').textContent = (c.punto ? c.punto + ' · ' : '') + 'Próximo a vencer: ' + c.diasProximo + ' días';
+  $('menu-empresa').textContent = c.empresa || 'Control de Vencimientos';
+  $('menu-punto').textContent = c.punto ? c.punto : 'FIFO · Vencimientos';
   var dl = $('lista-ubicaciones');
   dl.innerHTML = '';
   (c.ubicaciones || []).forEach(function(u){
@@ -769,12 +1084,14 @@ function irA(vista){
   ['registrar','lista','tabla','panel'].forEach(function(v){
     $('vista-' + v).classList.toggle('oculto', v !== vista);
   });
-  var botones = document.querySelectorAll('nav button');
+  /* Las dos navegaciones (barra inferior y menú lateral) marcan lo mismo. */
+  var botones = document.querySelectorAll('nav button, .menu-item');
   for (var i = 0; i < botones.length; i++){
     botones[i].classList.toggle('on', botones[i].getAttribute('data-vista') === vista);
   }
   if (vista !== 'registrar') cerrarEscaner();
   if (vista === 'panel' || vista === 'lista' || vista === 'tabla') cargarLista();
+  if (EST.dispositivo !== 'escritorio') cerrarMenu();
   window.scrollTo(0, 0);
 }
 
@@ -938,6 +1255,7 @@ function cargarLista(){
       pintarProveedores(r.proveedores || []);
       pintarRegistros(r);
       pintarTabla(r);
+      pintarCuentaMenu(r.kpis);
     }).catch(function(e){
       if (mio !== secuenciaLista) return;
       var faltaClave = (e.message === 'clave');
@@ -960,13 +1278,22 @@ function cargarLista(){
     });
 }
 
+/** Cuenta en el menú lateral cuántos lotes están vencidos o en alerta. */
+function pintarCuentaMenu(k){
+  var b = $('menu-cuenta-lista');
+  if (!b) return;
+  var n = ((k && k.vencidos) || 0) + ((k && k.alertas) || 0);
+  b.textContent = n ? ('⚠️ ' + n) : '';
+  b.classList.toggle('oculto', !n);
+}
+
 function pintarKPIs(k){
   if (!k) return;
   var tarjetas = [
-    { v: k.vencidos || 0,  e: 'Vencidos',        c: '#B91C1C' },
-    { v: k.alertas || 0,   e: 'En alerta',       c: '#BE123C' },
-    { v: k.unidadesCriticas || 0, e: 'Unidades críticas', c: '#A16207' },
-    { v: k.activos || 0,   e: 'Lotes activos',   c: '#0F2B46' }
+    { v: k.vencidos || 0,  e: 'Vencidos',        c: '#f87171' },
+    { v: k.alertas || 0,   e: 'En alerta',       c: '#fb7185' },
+    { v: k.unidadesCriticas || 0, e: 'Unidades críticas', c: '#fbbf24' },
+    { v: k.activos || 0,   e: 'Lotes activos',   c: '#52BE80' }
   ];
   $('panel-kpis').innerHTML = tarjetas.map(function(t){
     return '<div class="kpi" style="border-top-color:' + t.c + '"><div class="v" style="color:' + t.c + '">' +
@@ -974,12 +1301,12 @@ function pintarKPIs(k){
   }).join('');
 
   var partes = [
-    { n: k.vencidos || 0,   c: '#B91C1C', t: 'Vencidos' },
-    { n: k.alertas || 0,    c: '#BE123C', t: 'En alerta (' + (k.diasAlerta ? k.diasAlerta : '3, 8, 15, 30') + ')' },
-    { n: k.proximos || 0,   c: '#C2410C', t: 'Próximos a vencer' },
-    { n: k.vigilancia || 0, c: '#A16207', t: 'Vigilancia' },
-    { n: k.enRegla || 0,    c: '#15803D', t: 'En regla' },
-    { n: k.sinFecha || 0,   c: '#64748B', t: 'Sin fecha' }
+    { n: k.vencidos || 0,   c: '#f87171', t: 'Vencidos' },
+    { n: k.alertas || 0,    c: '#fb7185', t: 'En alerta (' + (k.diasAlerta ? k.diasAlerta : '3, 8, 15, 30') + ')' },
+    { n: k.proximos || 0,   c: '#fb923c', t: 'Próximos a vencer' },
+    { n: k.vigilancia || 0, c: '#fbbf24', t: 'Vigilancia' },
+    { n: k.enRegla || 0,    c: '#34d399', t: 'En regla' },
+    { n: k.sinFecha || 0,   c: '#94a3b8', t: 'Sin fecha' }
   ];
   var total = Math.max(1, k.activos);
   $('panel-barra').innerHTML = partes.map(function(p){
@@ -1019,15 +1346,17 @@ function pintarRegistros(r){
       botones += '<button class="btn-verde" data-accion="vender" data-id="' + esc(x.id) + '">✔ Vender</button>';
       botones += '<button class="btn-rojo" data-accion="retirar" data-id="' + esc(x.id) + '">⛔ Retirar</button>';
     }
-    return '<div class="reg" style="border-left-color:' + esc(x.color) + '">' +
+    var c = aclarar(x.color);   /* el mismo color de siempre, legible sobre oscuro */
+    return '<div class="reg" style="border-left-color:' + c + '">' +
       '<div class="top">' +
         '<div><div class="desc">' + esc(x.desc) + '</div>' +
         '<div class="meta">' + esc(x.cantidad) + ' u · ' + esc(x.proveedor) +
           (x.lote ? ' · ' + esc(x.lote) : '') + '</div>' +
         '<div class="meta">Vence ' + esc(x.fechaTexto) + (x.gestion ? ' · ' + esc(x.gestion) : '') + '</div>' +
-        '<div class="estado" style="background:' + esc(x.color) + '">' + esc(x.icono) + ' ' + esc(x.estado) + '</div>' +
+        '<div class="estado" style="background:' + tinte(c) + ';color:' + c + ';border:1px solid ' + tinte(c, .38) + '">' +
+          esc(x.icono) + ' ' + esc(x.estado) + '</div>' +
         '</div>' +
-        '<div class="dias" style="color:' + esc(x.color) + '">' + esc(x.diasTexto) + '</div>' +
+        '<div class="dias" style="color:' + c + '">' + esc(x.diasTexto) + '</div>' +
       '</div>' +
       (botones ? '<div class="acciones">' + botones + '</div>' : '') +
     '</div>';
@@ -1037,10 +1366,13 @@ function pintarRegistros(r){
 /** Tabla plana: código de barras, ítem, descripción, vencimiento, proveedor, días y estado. */
 function pintarTabla(r){
   var cuerpo = $('tabla-cuerpo');
-  $('resumen-tabla').textContent = r.total === 0
+  var resumen = r.total === 0
     ? 'Sin resultados con este filtro.'
     : r.total + (r.total === 1 ? ' lote' : ' lotes') + (r.total > 300 ? ' (mostrando 300)' : '') +
       ' · ordenados por días restantes';
+  /* En el teléfono la tabla no cabe: se avisa que se puede deslizar. */
+  if (r.total > 0 && EST.dispositivo === 'movil') resumen += ' · desliza la tabla →';
+  $('resumen-tabla').textContent = resumen;
 
   if (!r.registros.length){
     cuerpo.innerHTML = '<tr><td colspan="7" class="vacio">📭<br>No hay lotes que coincidan con el filtro.</td></tr>';
@@ -1048,15 +1380,17 @@ function pintarTabla(r){
   }
 
   cuerpo.innerHTML = r.registros.map(function(x){
+    var c = aclarar(x.color);
     return '<tr>' +
       '<td class="mono">' + esc(x.codigoBarra || '—') + '</td>' +
       '<td class="mono">' + esc(x.item || '—') + '</td>' +
       '<td>' + esc(x.desc) + '</td>' +
       '<td class="cen">' + esc(x.fechaTexto) + '</td>' +
       '<td>' + esc(x.proveedor) + '</td>' +
-      '<td class="num" style="background:' + esc(x.fondo) + ';color:' + esc(x.color) + '">' +
+      '<td class="num" style="background:' + tinte(c) + ';color:' + c + '">' +
         (x.dias === null || x.dias === undefined ? '—' : esc(x.dias)) + '</td>' +
-      '<td class="cen"><span class="pastilla" style="background:' + esc(x.color) + '">' +
+      '<td class="cen"><span class="pastilla" style="background:' + tinte(c) + ';color:' + c +
+        ';border-color:' + tinte(c, .38) + '">' +
         esc(x.icono) + ' ' + esc(x.estado) + '</span></td>' +
     '</tr>';
   }).join('');
@@ -1070,7 +1404,22 @@ function accion(id, cual){
   }).catch(function(e){ if (e.message !== 'clave') toast('No se pudo actualizar: ' + e.message, 3600); });
 }
 
-/* =================== escáner =================== */
+/* =================== escáner ===================
+
+   Cómo se lee rápido (esto es lo que antes se demoraba):
+
+   1. Se abre la cámara con resolución ideal 1280×720 y enfoque continuo
+      cuando el teléfono lo permite.
+   2. En cada intento NO se analiza el cuadro completo: se recorta la franja
+      central (la misma que enmarca la mira) y se entrega reducida. Menos
+      píxeles = lectura en la mitad del tiempo y menos falsos positivos.
+   3. Manda el lector NATIVO del teléfono (BarcodeDetector: usa el hardware).
+      Si no existe, o si se queda pegado o no reconoce nada, entra ZXing.
+   4. La librería de ZXing se descarga al entrar a la app (en segundo plano),
+      no cuando se abre la cámara: el primer escaneo ya no espera la descarga.
+   5. Siempre queda "Tomar foto": la cámara del sistema enfoca perfecto y una
+      foto nítida se lee casi al instante, incluso con brillos o movimiento.
+   6. Un zumbido corto y una vibración avisan cuando el código quedó leído.  */
 
 function abrirEscaner(){
   /* En la app instalada hay origen propio: cámara en vivo.
@@ -1086,16 +1435,27 @@ function abrirCamaraFoto(){
   input.click();
 }
 
+/** Deja ZXing descargado y en caché para que el primer escaneo sea inmediato. */
+function precalentarEscaner(){
+  cargarZXing().catch(function(){ /* sin internet: se usará el lector nativo */ });
+}
+
+/* ---------- foto (sirve en las dos versiones de la app) ---------- */
+
 function leerFoto(archivo){
   if (!archivo) return;
   toast('Leyendo el código…', 6000);
   var url = URL.createObjectURL(archivo);
   var img = new Image();
   img.onload = function(){
+    /* La foto del teléfono suele pesar muchísimo. Se intenta primero tal cual
+       (el lector nativo la resuelve bien) y, si no, reducida: ZXing lee mucho
+       más rápido una imagen de 1500 px que una de 12 megapíxeles. */
     decodificarFuente(img).then(function(texto){
-      try { URL.revokeObjectURL(url); } catch(e){}
-      if (texto) exitoEscaneo(texto);
-      else toast('No se pudo leer el código. Acerca la cámara al código y vuelve a intentar, o escríbelo a mano.', 4600);
+      if (texto) return terminarFoto(url, texto);
+      var lona = reducirFuente(img, 1500);
+      if (!lona) return terminarFoto(url, null);
+      return decodificarFuente(lona).then(function(t2){ terminarFoto(url, t2); });
     });
   };
   img.onerror = function(){
@@ -1103,6 +1463,12 @@ function leerFoto(archivo){
     toast('No se pudo abrir la foto. Intenta de nuevo.');
   };
   img.src = url;
+}
+
+function terminarFoto(url, texto){
+  try { URL.revokeObjectURL(url); } catch(e){}
+  if (texto) exitoEscaneo(texto);
+  else toast('No se pudo leer el código. Acerca la cámara al código y vuelve a intentar, o escríbelo a mano.', 4600);
 }
 
 /** Decodifica una imagen o un video: primero el lector nativo, luego ZXing. */
@@ -1113,7 +1479,7 @@ function decodificarFuente(fuente){
     try { det = new BarcodeDetector({ formats: FORMATOS }); }
     catch(e){ try { det = new BarcodeDetector(); } catch(e2){ res(null); return; } }
     det.detect(fuente)
-      .then(function(c){ res(c && c.length ? c[0].rawValue : null); })
+      .then(function(c){ res(mejorCodigo(c)); })
       .catch(function(){ res(null); });
   }).then(function(texto){
     if (texto) return texto;
@@ -1137,13 +1503,121 @@ function decodificarConZXing(fuente){
     var ZX = window.ZXingBrowser || window.ZXing;
     var Lector = ZX.BrowserMultiFormatReader || ZX.BrowserCodeReader;
     if (!Lector) return null;
-    var lector = new Lector();
-    var esImagen = fuente && fuente.tagName && fuente.tagName.toLowerCase() === 'img';
-    var tarea = esImagen
-      ? lector.decodeFromImageElement(fuente)
-      : lector.decodeFromVideoElement(fuente);
-    return tarea.then(function(r){ return r ? r.getText() : null; });
+    var lector = nuevoLectorZX(ZX, Lector);
+    /* Cada cosa se entrega por su puerta: el lienzo por decodeFromCanvas (el
+       camino rápido), la foto por decodeFromImageElement y el video en vivo
+       por decodeFromVideoElement. */
+    var etiqueta = (fuente && fuente.tagName) ? String(fuente.tagName).toLowerCase() : '';
+    var tarea;
+    if (etiqueta === 'canvas' && lector.decodeFromCanvas) tarea = lector.decodeFromCanvas(fuente);
+    else if (etiqueta === 'img') tarea = lector.decodeFromImageElement(fuente);
+    else tarea = lector.decodeFromVideoElement(fuente);
+    /* Ojo: decodeFromCanvas responde de inmediato (síncrono) y las otras dos
+       puertas devuelven una promesa. Promise.resolve() acepta las dos. */
+    return Promise.resolve(tarea).then(function(r){ return r ? r.getText() : null; });
   }).catch(function(){ return null; });
+}
+
+/* ---------- ayudas compartidas por los dos lectores ---------- */
+
+/** Del montón de lecturas de un cuadro, la más confiable.
+    Prefiere los códigos de producto (EAN/UPC) y, a igualdad, el más largo. */
+var PESO_FORMATO = { ean_13:5, upc_a:5, ean_8:4, upc_e:4, code_128:3, code_93:2, code_39:2, itf:2, codabar:2 };
+
+function mejorCodigo(codigos){
+  if (!codigos || !codigos.length) return null;
+  var mejor = null, peso = -1;
+  for (var i = 0; i < codigos.length; i++){
+    var c = codigos[i];
+    var texto = String((c && c.rawValue) || '').trim();
+    if (!texto) continue;
+    var p = (PESO_FORMATO[c.format] || 1) * 100 + Math.min(texto.length, 40);
+    if (p > peso){ peso = p; mejor = texto; }
+  }
+  return mejor;
+}
+
+/** El recuadro que el usuario ve en pantalla (la mira). La lectura analiza
+    EXACTAMENTE esta franja y no el cuadro completo: es LA razón por la que
+    ahora lee rápido (se procesan ~10 veces menos píxeles) y por la que el
+    código que se ve centrado es el que se lee. */
+var MIRA = { x: 0.15, y: 0.28, ancho: 0.70, alto: 0.44 };
+
+function recorteCentral(video, anchoMax){
+  var vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) return null;
+  /* El video se muestra recortado (object-fit: cover): primero se calcula qué
+     trozo del video está realmente a la vista y luego se toma la mira. */
+  var dw = video.clientWidth, dh = video.clientHeight;
+  var escala = (dw && dh) ? Math.max(dw / vw, dh / vh) : 1;
+  var vx = dw ? dw / escala : vw, vy = dh ? dh / escala : vh;
+  var ox = (vw - vx) / 2, oy = (vh - vy) / 2;
+  var sx = Math.round(ox + vx * MIRA.x), sy = Math.round(oy + vy * MIRA.y);
+  var sw = Math.round(vx * MIRA.ancho), sh = Math.round(vy * MIRA.alto);
+  var k = Math.min(1, (anchoMax || 880) / sw);
+  var lona = lonaRecorte || (lonaRecorte = document.createElement('canvas'));
+  lona.width = Math.max(1, Math.round(sw * k));
+  lona.height = Math.max(1, Math.round(sh * k));
+  try {
+    var ctx = lona.getContext('2d');
+    /* Sin suavizado y con coordenadas enteras: las barras de un código de 1-2
+       píxeles se borrarían al interpolar, y entonces el lector no ve nada. */
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, lona.width, lona.height);
+  } catch(e){ return null; }
+  return lona;
+}
+
+/** Reduce una imagen grande (fotos de 12 MP) a un tamaño que se lee al vuelo. */
+function reducirFuente(fuente, anchoMax){
+  var ancho = fuente.naturalWidth || fuente.videoWidth || fuente.width;
+  var alto = fuente.naturalHeight || fuente.videoHeight || fuente.height;
+  if (!ancho || !alto) return null;
+  var escala = Math.min(1, (anchoMax || 1500) / Math.max(ancho, alto));
+  var lona = document.createElement('canvas');
+  lona.width = Math.max(1, Math.round(ancho * escala));
+  lona.height = Math.max(1, Math.round(alto * escala));
+  try { lona.getContext('2d').drawImage(fuente, 0, 0, lona.width, lona.height); }
+  catch(e){ return null; }
+  return lona;
+}
+
+function nuevoLectorZX(ZX, Lector){
+  var h = opcionesZXing(ZX);
+  try { return h ? new Lector(h) : new Lector(); }
+  catch(e){ return new Lector(); }
+}
+
+/** Le dice a ZXing qué buscar: solo códigos de producto y sin "esforzarse",
+    que es justo lo que lo hacía lento. */
+function opcionesZXing(ZX){
+  try {
+    var H = ZX.DecodeHintType, F = ZX.BarcodeFormat;
+    if (!H || !F) return undefined;
+    var formatos = [];
+    ['EAN_13','EAN_8','UPC_A','UPC_E','CODE_128','CODE_39','CODE_93','ITF','CODABAR'].forEach(function(n){
+      if (F[n] !== undefined) formatos.push(F[n]);
+    });
+    var h = {};
+    h[H.POSSIBLE_FORMATS] = formatos;
+    h[H.TRY_HARDER] = false;
+    return h;
+  } catch(e){ return undefined; }
+}
+
+function sonarAviso(){
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    var ctx = contextoAudio || (contextoAudio = new AC());
+    if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    var osc = ctx.createOscillator(), gan = ctx.createGain();
+    osc.type = 'square'; osc.frequency.value = 1240;
+    gan.gain.value = 0.06;
+    osc.connect(gan); gan.connect(ctx.destination);
+    osc.start();
+    setTimeout(function(){ try { osc.stop(); } catch(e){} }, 90);
+  } catch(e){}
 }
 
 /* ---------- cámara en vivo (solo app instalada) ---------- */
@@ -1151,34 +1625,72 @@ function decodificarConZXing(fuente){
 function abrirEscanerEnVivo(){
   $('overlay-escaneo').classList.remove('oculto');
   $('scan-titulo').textContent = 'Apunta al código de barras';
-  $('scan-motor').textContent = '';
+  $('scan-motor').textContent = 'Encendiendo la cámara…';
+  $('btn-scan-linterna').classList.add('oculto');
+  $('btn-scan-linterna').classList.remove('linterna-on');
   scanActivo = true;
   var video = $('video-escaneo');
 
-  if (typeof BarcodeDetector !== 'undefined'){
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
-      .then(function(s){
-        streamCamara = s;
-        video.srcObject = s;
-        return video.play();
-      })
-      .then(function(){
-        $('scan-motor').textContent = 'Lector del teléfono';
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+    .then(function(s){
+      streamCamara = s;
+      video.srcObject = s;
+      return video.play();
+    })
+    .then(function(){
+      ajustarCamara();
+      prepararLinterna();
+      if (typeof BarcodeDetector !== 'undefined'){
+        $('scan-motor').textContent = 'Lector del teléfono · centra el código en el recuadro';
         bucleNativo(video);
-      })
-      .catch(function(e){ falloCamara(video, e); });
-  } else {
-    $('scan-motor').textContent = 'Cargando lector…';
-    escanearConZXing(video);
+      } else {
+        $('scan-motor').textContent = 'Lector alternativo (ZXing) · centra el código en el recuadro';
+        escanearConZXing(video);
+      }
+    })
+    .catch(function(e){ falloCamara(video, e); });
+}
+
+/** Resolución y enfoque continuo: sin esto la cámara tarda en "clavar" el foco. */
+function ajustarCamara(){
+  if (!streamCamara || !streamCamara.getVideoTracks) return;
+  var pista = streamCamara.getVideoTracks()[0];
+  if (!pista || !pista.applyConstraints) return;
+  try {
+    var tarea = pista.applyConstraints({
+      width: { ideal: 1280 }, height: { ideal: 720 },
+      advanced: [{ focusMode: 'continuous' }]
+    });
+    if (tarea && tarea.catch) tarea.catch(function(){ /* el teléfono no lo admite: se sigue igual */ });
+  } catch(e){}
+}
+
+function prepararLinterna(){
+  var boton = $('btn-scan-linterna');
+  if (!boton) return;
+  var pista = streamCamara && streamCamara.getVideoTracks ? streamCamara.getVideoTracks()[0] : null;
+  var capacidades = pista && pista.getCapabilities ? pista.getCapabilities() : null;
+  if (capacidades && capacidades.torch){
+    boton.classList.remove('oculto');
+    boton.onclick = function(){ alternarLinterna(pista, boton); };
   }
+}
+
+function alternarLinterna(pista, boton){
+  var encender = !boton.classList.contains('linterna-on');
+  try {
+    pista.applyConstraints({ advanced: [{ torch: encender }] });
+    boton.classList.toggle('linterna-on', encender);
+    boton.textContent = encender ? '🔦 Apagar' : '🔦 Linterna';
+  } catch(e){}
 }
 
 function falloCamara(video, e){
   var mensaje = String((e && e.name) || '') + ' ' + String((e && e.message) || '');
   if (/NotAllowed|Permission|policy/i.test(mensaje)){
-    $('scan-motor').textContent = 'El navegador bloqueó la cámara. Revisa los permisos del sitio (candado 🔒 en la barra de direcciones). Mientras tanto, escribe el código a mano.';
+    $('scan-motor').textContent = 'El navegador bloqueó la cámara. Revisa los permisos del sitio (candado 🔒 en la barra de direcciones). También puedes usar "Tomar foto" o escribir el código a mano.';
   } else {
-    $('scan-motor').textContent = 'Sin cámara: ' + mensaje + '. Escribe el código a mano.';
+    $('scan-motor').textContent = 'Sin cámara en vivo: ' + mensaje + '. Usa "Tomar foto" o escribe el código a mano.';
   }
   scanActivo = false;
 }
@@ -1187,15 +1699,32 @@ function bucleNativo(video){
   var det;
   try { det = new BarcodeDetector({ formats: FORMATOS }); }
   catch(e){ try { det = new BarcodeDetector(); } catch(e2){ escanearConZXing(video); return; } }
+  var ultimo = 0, fallos = 0, lentos = 0;
   var tic = function(){
     if (!scanActivo) return;
-    det.detect(video).then(function(codigos){
+    var ahora = Date.now();
+    /* Se lee unas 10 veces por segundo: más que suficiente para que se sienta
+       instantáneo, y no se funde la batería analizando cuadros de más. */
+    if (ahora - ultimo < 95){ requestAnimationFrame(tic); return; }
+    ultimo = ahora;
+    var entrada = recorteCentral(video, 900) || video;
+    var t0 = Date.now();
+    det.detect(entrada).then(function(codigos){
       if (!scanActivo) return;
-      if (codigos && codigos.length && codigos[0].rawValue){ exitoEscaneo(codigos[0].rawValue); return; }
+      var texto = mejorCodigo(codigos);
+      if (texto){ exitoEscaneo(texto); return; }
+      fallos = 0;
+      if (Date.now() - t0 > 240) lentos++;
+      if (lentos >= 8){ escanearConZXing(video); return; }   /* el nativo va muy lento aquí */
+      requestAnimationFrame(tic);
+    }).catch(function(){
+      /* El lector nativo no puede con este teléfono: se pasa a ZXing. */
+      fallos++;
+      if (fallos >= 4){ escanearConZXing(video); return; }
       setTimeout(tic, 180);
-    }).catch(function(){ setTimeout(tic, 260); });
+    });
   };
-  tic();
+  requestAnimationFrame(tic);
 }
 
 function escanearConZXing(video){
@@ -1203,14 +1732,36 @@ function escanearConZXing(video){
     var ZX = window.ZXingBrowser || window.ZXing;
     var Lector = ZX.BrowserMultiFormatReader || ZX.BrowserCodeReader;
     if (!Lector) throw new Error('lector no disponible');
-    var lector = new Lector();
-    $('scan-motor').textContent = 'Lector alternativo (ZXing)';
-    return lector.decodeFromVideoDevice(undefined, video, function(res, err, ctrls){
-      if (ctrls) controlesZX = ctrls;
-      if (res && res.getText()) exitoEscaneo(res.getText());
-    });
+    var lector = nuevoLectorZX(ZX, Lector);
+    if (!scanActivo) return;
+    $('scan-motor').textContent = 'Lector alternativo (ZXing) · centra el código en el recuadro';
+    var ultimo = 0;
+    var tic = function(){
+      if (!scanActivo) return;
+      var ahora = Date.now();
+      if (ahora - ultimo < 150){ requestAnimationFrame(tic); return; }
+      ultimo = ahora;
+      var lona = recorteCentral(video, 800) || video;
+      var tarea = null;
+      try {
+        tarea = lector.decodeFromCanvas
+          ? lector.decodeFromCanvas(lona)
+          : lector.decodeFromImageElement(lona);
+      } catch(e){ tarea = null; }
+      if (!tarea){ requestAnimationFrame(tic); return; }
+      /* decodeFromCanvas contesta al instante (síncrono); Promise.resolve()
+         deja el mismo camino para las dos formas de respuesta. */
+      Promise.resolve(tarea).then(function(r){
+        if (!scanActivo) return;
+        if (r && r.getText()){ exitoEscaneo(r.getText()); return; }
+        requestAnimationFrame(tic);
+      }).catch(function(){
+        if (scanActivo) requestAnimationFrame(tic);
+      });
+    };
+    requestAnimationFrame(tic);
   }).catch(function(e){
-    $('scan-motor').textContent = 'Sin cámara: ' + e.message + '. Escribe el código a mano.';
+    $('scan-motor').textContent = 'Sin lector: ' + e.message + '. Usa "Tomar foto" o escribe el código a mano.';
     scanActivo = false;
   });
 }
@@ -1218,6 +1769,7 @@ function escanearConZXing(video){
 function exitoEscaneo(texto){
   scanActivo = false;
   if (navigator.vibrate) navigator.vibrate(45);
+  sonarAviso();
   cerrarEscaner();
   var limpio = String(texto).trim();
   $('codigo').value = limpio;
@@ -1227,6 +1779,9 @@ function exitoEscaneo(texto){
 function cerrarEscaner(){
   scanActivo = false;
   $('overlay-escaneo').classList.add('oculto');
+  $('btn-scan-linterna').classList.add('oculto');
+  $('btn-scan-linterna').classList.remove('linterna-on');
+  $('btn-scan-linterna').textContent = '🔦 Linterna';
   if (controlesZX){ try { controlesZX.stop(); } catch(e){} controlesZX = null; }
   if (streamCamara){
     try { streamCamara.getTracks().forEach(function(t){ t.stop(); }); } catch(e){}
@@ -1236,7 +1791,23 @@ function cerrarEscaner(){
   try { v.pause(); v.srcObject = null; } catch(e){}
 }
 
+
 /* =================== conexión con la API =================== */
+
+/** Abre la tarjeta de conexión (la única donde se corrige la dirección de la
+    API) y baja hasta ella. Solo existe en la app instalable. */
+function abrirCajaApi(){
+  irA('panel');
+  if (MODO_APP !== 'pwa' || !$('caja-api')){
+    toast('Aquí la conexión la maneja Apps Script');
+    return;
+  }
+  $('caja-api').classList.remove('oculto');
+  $('caja-api').open = true;
+  setTimeout(function(){
+    try { $('caja-api').scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){}
+  }, 120);
+}
 
 function probarApi(){
   var u = $('campo-api').value.trim();
@@ -1264,7 +1835,28 @@ function probarApi(){
 document.addEventListener('DOMContentLoaded', function(){
   iniciar();
 
-  document.querySelectorAll('nav button').forEach(function(b){
+  /* ---------- menú lateral ---------- */
+  $('btn-menu').onclick = alternarMenu;
+  $('fondo-menu').onclick = cerrarMenu;
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cerrarMenu(); });
+  $('menu-refrescar').onclick = function(){ cerrarMenu(); cargarLista(); toast('Datos actualizados'); };
+  $('menu-instalar').onclick = function(){
+    cerrarMenu();
+    if (!EST.instalable){ toast('Usa el menú del navegador ▸ Añadir a pantalla de inicio'); return; }
+    EST.instalable.prompt();
+    EST.instalable = null;
+  };
+  $('menu-conexion').onclick = function(){ cerrarMenu(); abrirCajaApi(); };
+
+  /* La app se reacomoda sola al girar el teléfono o cambiar la ventana. */
+  var redimension;
+  window.addEventListener('resize', function(){
+    clearTimeout(redimension);
+    redimension = setTimeout(detectarDispositivo, 180);
+  });
+  window.addEventListener('orientationchange', function(){ setTimeout(detectarDispositivo, 260); });
+
+  document.querySelectorAll('nav button, .menu-item').forEach(function(b){
     b.onclick = function(){ irA(b.getAttribute('data-vista')); };
   });
 
@@ -1278,6 +1870,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
   $('btn-escanear').onclick = abrirEscaner;
   $('btn-cerrar-escaneo').onclick = cerrarEscaner;
+  /* Respaldo dentro de la cámara en vivo: si el código no se deja leer (brillo,
+     movimiento, código arrugado), una foto nítida lo resuelve al instante. */
+  $('btn-scan-foto').onclick = abrirCamaraFoto;
   $('archivo-codigo').addEventListener('change', function(e){
     leerFoto(e.target.files && e.target.files[0]);
   });
