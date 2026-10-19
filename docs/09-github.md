@@ -108,6 +108,11 @@ npm run serve     # servidor local con API falsa para probar la app en el navega
 El servidor de prueba abre `http://localhost:8765` con una API de mentira (clave `73194528`), para
 probar la app sin tocar el libro real.
 
+> Las pruebas usan un **reloj fijo** (lunes 19 de octubre de 2026, 3:41 p. m.) porque la vista previa
+> del correo lleva la fecha y la hora en el encabezado: con la hora real, `preview-ejemplo.html`
+> cambiaría en cada ejecución y el guardián fallaría siempre. Para ver la vista previa con la hora de
+> tu equipo: `node tests/fifo_render.js --ahora`.
+
 ---
 
 ## 4. Opcional: subir el código con `clasp` (sin copiar y pegar)

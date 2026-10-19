@@ -1,16 +1,18 @@
 /**
- * pwa_server.js — servidor de PRUEBA (no forma parte del proyecto).
+ * servidor-prueba.js — servidor de PRUEBA (no forma parte del proyecto).
  *
  * Sirve la carpeta pwa/ por HTTP y, además, una API falsa en /api que imita
  * palabra por palabra el contrato de Code.gs (mismos campos, mismo
  * requiereClave). Así se prueba la app instalable de punta a punta en un
  * navegador de verdad, sin depender del despliegue de Google.
  *
- *   node pwa_server.js [puerto]
+ *   node tests/servidor-prueba.js [puerto]      (o: npm run serve)
+ *
+ * Abre http://localhost:8765 y entra con la clave de prueba 73194528.
  */
 const http = require('http');
 const fs = require('fs');
-const p = require('path');
+const path = require('path');
 
 const PUERTO = parseInt(process.argv[2] || '8765', 10);
 const RAIZ = path.resolve(__dirname, '..', 'pwa');
@@ -200,11 +202,11 @@ http.createServer((req, res) => {
   }
 
   const f = ruta === '/' || ruta === '' ? '/index.html' : ruta;
-  const destino = p.join(RAIZ, f);
+  const destino = path.join(RAIZ, f);
   if (destino.indexOf(RAIZ) !== 0) { res.writeHead(403); res.end('no'); return; }
   fs.readFile(destino, (e, d) => {
     if (e) { res.writeHead(404); res.end('no encontrado'); return; }
-    res.writeHead(200, { 'Content-Type': TIPOS[p.extname(destino)] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': TIPOS[path.extname(destino)] || 'application/octet-stream' });
     res.end(d);
   });
 }).listen(PUERTO, () => {
