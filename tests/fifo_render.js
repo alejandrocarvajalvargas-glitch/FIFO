@@ -8,6 +8,27 @@ const CODIGO = path.join(RAIZ, 'apps-script', 'Code.gs');
 const PLANTILLA = path.join(RAIZ, 'apps-script', 'ReporteHTML.html');
 const SALIDA = path.join(RAIZ, 'apps-script', 'preview-ejemplo.html');
 
+/* Reloj fijo: el reporte lleva la hora en el encabezado, así que con la hora real
+   el archivo de vista previa cambiaría en cada ejecución y el CI (que compara el
+   árbol de trabajo) fallaría siempre. Con fecha fija, la vista previa es estable y
+   las pruebas son reproducibles en cualquier máquina. Usa `--ahora` para verla con
+   la hora real del sistema. */
+const CON_RELOJ_REAL = process.argv.indexOf('--ahora') !== -1;
+const AHORA_FIJO = new Date(2026, 9, 19, 15, 41, 0);   // lunes 19 de octubre de 2026, 3:41 p. m.
+const DateReal = Date;
+if (!CON_RELOJ_REAL) {
+  const DateFijo = function () {
+    const args = Array.prototype.slice.call(arguments);
+    if (args.length === 0) return new DateReal(AHORA_FIJO.getTime());
+    return new (Function.prototype.bind.apply(DateReal, [null].concat(args)))();
+  };
+  DateFijo.now = () => AHORA_FIJO.getTime();
+  DateFijo.parse = DateReal.parse;
+  DateFijo.UTC = DateReal.UTC;
+  DateFijo.prototype = DateReal.prototype;
+  global.Date = DateFijo;
+}
+
 global.Utilities = {
   DigestAlgorithm: { SHA_256: 'SHA_256' },
   Charset: { UTF_8: 'UTF_8' },
