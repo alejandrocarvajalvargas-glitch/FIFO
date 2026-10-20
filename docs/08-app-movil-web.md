@@ -172,15 +172,30 @@ usuario elija nada. También se reacomoda al girar el teléfono.
 La detección mira el ancho **y** si hay puntero fino: una tableta táctil de 10" no se
 trata como computador, porque el menú fijo no tendría sentido sin ratón.
 
-### 2.3.3 Identidad de marca
+### 2.3.3 Identidad de marca y tema
 
 La app, el correo y la vista previa comparten la misma paleta: verde profundo
-`#1B4D3E`, acento `#52BE80`, lienzo `#0d1a15`, superficies `#132A22`/`#19362c`, bordes
-`#275d4c` y tipografía **Plus Jakarta Sans** (con respaldo del sistema si no hay
-internet). Los **colores del semáforo no cambian de significado**: rojo vencido, rosa
-alerta, naranja próximo, ámbar vigilancia, verde en regla. Como el fondo ahora es oscuro,
-se usan sus tonos claros (`aclarar()`) y el fondo de cada pastilla es una capa
-translúcida (`tinte()`).
+`#1B4D3E`, acento `#52BE80` y tipografía **Plus Jakarta Sans** (con respaldo del sistema
+si no hay internet).
+
+**La app tiene dos temas** (`html[data-tema]`), y el tema es solo piel: no cambia ningún
+dato, ningún filtro ni ninguna regla del semáforo.
+
+- **Claro (de fábrica):** el contenido va en blanco —tarjetas, lista, tabla, campos y
+  KPIs— sobre un lienzo `#EEF4F1`; la cabecera, el menú y la barra inferior siguen en
+  verde profundo, así que la marca enmarca el dato.
+- **Oscuro:** el diseño anterior (lienzo `#0d1a15`, superficies `#132A22`/`#19362c`).
+
+El botón **🌙 Tema oscuro / ☀️ Tema claro** del menú los alterna; la elección se guarda en
+`localStorage` (`fifo_tema`) y un mini-script del `<head>` la aplica **antes de pintar**,
+para que no haya destello. El correo se queda oscuro a propósito: es donde mejor se lee
+en pantalla de computador.
+
+Los **colores del semáforo no cambian de significado**: rojo vencido, rosa alerta,
+naranja próximo, ámbar vigilancia, verde en regla. Sobre fondo oscuro se usan sus tonos
+claros y sobre fondo claro sus tonos de papel (los mismos de la hoja y del correo), con
+`aclarar()`/`COLOR_EN_CLARO`, y `colorKpi()` para las tarjetas del Panel; el fondo de cada
+pastilla es una capa translúcida (`tinte()`).
 
 ### 2.4 Por qué la app instalable habla por JSONP y no por `fetch`
 
@@ -357,12 +372,12 @@ las filas borraría esas fórmulas.
 
 ### Moverse por la app (menú lateral)
 El botón **☰** de la cabecera abre el menú, que lleva a las cuatro vistas —**Registrar**,
-**Lista**, **Tabla** y **Panel**— y además ofrece **Actualizar**, **Instalar** (solo si el
-navegador lo permite), **Conexión** (solo en la app instalable) y, al pie, el modo en que se
-está usando la app y el tamaño de pantalla detectado. El menú se cierra tocando fuera, con
-la tecla *Esc* o al elegir una vista. En el computador no hay ☰: el mismo menú queda **fijo a
-la izquierda** y la barra inferior desaparece. El número junto a *Lista* indica cuántos lotes
-están **vencidos o en día de aviso**.
+**Lista**, **Tabla** y **Panel**— y además ofrece **Tema claro/oscuro**, **Actualizar**,
+**Instalar** (solo si el navegador lo permite), **Conexión** (solo en la app instalable) y,
+al pie, el modo en que se está usando la app y el tamaño de pantalla detectado. El menú se
+cierra tocando fuera, con la tecla *Esc* o al elegir una vista. En el computador no hay ☰:
+el mismo menú queda **fijo a la izquierda** y la barra inferior desaparece. El número junto
+a *Lista* indica cuántos lotes están **vencidos o en día de aviso**.
 
 ### Instalarlo en el teléfono
 
@@ -433,7 +448,7 @@ reales de `SEGUIMIENTO` y escribe cada valor en la columna que le corresponde
 | Prueba | Qué cubre | Estado |
 |---|---|---|
 | `tests/fifo_api.js` | **170 casos**: clave, búsqueda por código de barras / item / texto / proveedor, guardado con las 15 columnas en su sitio, validaciones, KPIs, filtros, orden FIFO, acciones, entrega de la interfaz, **API HTTP (`doPost` / `doGet?op=`)**, **JSONP**, **la regla de avisos por hitos (un solo correo con la lista, y silencio cuando no hay hitos ni vencidos)**, la **auditoría del catálogo** (detecta las filas corridas de columna), el **orden automático de SEGUIMIENTO** (ascendente, sin perder filas, recalcula L y M) y el **semáforo y la protección de las hojas** | verde en maestro y en bundle |
-| `tests/fifo_ui.js` | **206 comprobaciones estáticas** de la interfaz y de la app instalable: ids que existen, selectores válidos, el puente contra el despachador del servidor en los dos sentidos, **la traducción de argumentos ejecutada de verdad**, las dos rutas de cámara, **el recorte de la mira sin suavizado y con coordenadas enteras**, **la respuesta síncrona de ZXing**, **el estado «Alerta» y su filtro**, **la pestaña Tabla con sus 7 columnas y sus filtros sincronizados**, **el menú lateral, la detección de celular/tableta/computador y la paleta corporativa**, **el diagnóstico y la autorreparación de la conexión** y la coherencia de `pwa/` (index idéntico, manifest, íconos PNG con las medidas que declara, service worker) | verde |
+| `tests/fifo_ui.js` | **213 comprobaciones estáticas** de la interfaz y de la app instalable: ids que existen, selectores válidos, el puente contra el despachador del servidor en los dos sentidos, **la traducción de argumentos ejecutada de verdad**, las dos rutas de cámara, **el recorte de la mira sin suavizado y con coordenadas enteras**, **la respuesta síncrona de ZXing**, **el estado «Alerta» y su filtro**, **la pestaña Tabla con sus 7 columnas y sus filtros sincronizados**, **el menú lateral, la detección de celular/tableta/computador y la paleta corporativa**, **los dos temas (claro de fábrica y oscuro recordado)**, **el diagnóstico y la autorreparación de la conexión** y la coherencia de `pwa/` (index idéntico, manifest, íconos PNG con las medidas que declara, service worker) | verde |
 | `tests/fifo_test.js` · `fifo_e2e.js` · `fifo_render.js` | motor de correo, **regla de los días de aviso (estado «Alerta» solo en 3/8/15/30 y recta final)**, plantilla y vista previa | verde |
 | Prueba de navegador | la app instalable servida por HTTPS contra una **API falsa que imita el contrato**: entrar con clave, buscar, guardar, filtrar, vender, la ruta de la foto y la carga de ZXing desde el CDN. Además se comprobó con un **código EAN-13 de prueba** (generado en el propio navegador) que el recorte de la mira lo lee de verdad en celular vertical, celular horizontal y tableta, y que **no inventa lecturas** cuando el código no está | sin errores de consola |
 

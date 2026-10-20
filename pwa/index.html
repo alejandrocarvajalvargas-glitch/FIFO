@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1B4D3E">
+<!-- Tema de la app: claro de fábrica, oscuro a un toque desde el menú.
+     Se aplica aquí, antes de pintar, para que no haya un destello oscuro. -->
+<script>
+  (function(){
+    var t = 'claro';
+    try { t = localStorage.getItem('fifo_tema') || 'claro'; } catch(e){}
+    document.documentElement.setAttribute('data-tema', t === 'oscuro' ? 'oscuro' : 'claro');
+  })();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,7 +50,18 @@
     --linea:#235042; --linea-fuerte:#2f6352; --hundido:#0f211b;
     --texto:#f1f5f9; --gris:#94a3b8;
 
-    /* ---------- estados del semáforo ---------- */
+    /* ---------- marco: cabecera, menú y barra inferior ----------
+       En el tema claro el contenido se vuelve blanco, pero el marco sigue
+       siendo el verde corporativo: la marca enmarca, el dato respira. */
+    --marco-fondo:rgba(19,42,34,.93); --marco-fondo-2:rgba(19,42,34,.96);
+    --marco-menu:linear-gradient(180deg,#162e26,#0f211b);
+    --marco-texto:#f1f5f9; --marco-suave:#a7f3d0; --marco-gris:#94a3b8;
+    --marco-acento:#52BE80;
+    --marco-linea:#275d4c; --marco-linea-2:#2f6352;
+    --marco-superficie:#1d3d32; --marco-superficie-2:#19362c;
+    --marco-tenue:rgba(82,190,128,.12); --marco-borde:rgba(82,190,128,.30);
+
+    /* ---------- estados del semáforo (versión para fondo oscuro) ---------- */
     --rojo:#f87171; --rojo-f:rgba(248,113,113,.13);
     --alerta:#BE123C;
     --naranja:#fb923c; --naranja-f:rgba(251,146,60,.13);
@@ -49,30 +69,75 @@
     --verde:#34d399; --verde-f:rgba(52,211,153,.13);
     --cielo:#38bdf8; --cielo-f:rgba(56,189,248,.13);
 
+    /* ---------- piezas que cambian con el tema ---------- */
+    --sobre-acento:#08281c; --rojo-texto:#fca5a5; --naranja-texto:#fdba74;
+    --aviso-texto:#fde68a; --placeholder:#5f7a88;
+    --barra-fondo:rgba(0,0,0,.35); --velo:rgba(5,13,10,.8);
+    --kpi-fondo:linear-gradient(180deg,var(--superficie),#101f1a);
+    --fila-par:rgba(82,190,128,.045); --fila-hover:rgba(82,190,128,.10);
+    --fondo-degradados:
+      radial-gradient(at 0% 0%, rgba(27,77,62,.42) 0px, transparent 52%),
+      radial-gradient(at 100% 100%, rgba(17,51,41,.55) 0px, transparent 55%);
+
     --sombra:0 12px 28px -16px rgba(0,0,0,.75);
     --radio:16px;
   }
+
+  /* =====================================================================
+     TEMA CLARO
+     Mismo semáforo, mismos significados. Solo cambia el lienzo: las
+     tarjetas, la lista, la tabla y los campos pasan a blanco y el
+     semáforo usa sus tonos de papel (los mismos de la hoja y del correo),
+     que sobre blanco es donde mejor se leen.
+     ===================================================================== */
+  html[data-tema="claro"]{
+    --marca:#1B4D3E; --marca-claro:#256350; --marca-osc:#113329;
+    --marca-borde:#d6e5df; --marca-tenue:rgba(27,77,62,.07);
+    --acento:#157A52; --acento-texto:#14513F; --acento-borde:rgba(27,77,62,.18);
+
+    --fondo:#EEF4F1; --fondo-2:#E4EDE9;
+    --superficie:#ffffff; --superficie-2:#F7FBF9; --superficie-3:#EAF3EE;
+    --linea:#E3EDE8; --linea-fuerte:#CBDDD5; --hundido:#F5F9F7;
+    --texto:#12241D; --gris:#5E7268;
+
+    --rojo:#B91C1C; --rojo-f:rgba(185,28,28,.08);
+    --alerta:#BE123C;
+    --naranja:#C2410C; --naranja-f:rgba(194,65,12,.08);
+    --amarillo:#A16207; --amarillo-f:rgba(161,98,7,.10);
+    --verde:#15803D; --verde-f:rgba(21,128,61,.08);
+    --cielo:#0369A1; --cielo-f:rgba(3,105,161,.08);
+
+    --sobre-acento:#ffffff; --rojo-texto:#991B1B; --naranja-texto:#9A3412;
+    --aviso-texto:#7C4A03; --placeholder:#8CA096;
+    --barra-fondo:rgba(27,77,62,.10); --velo:rgba(11,31,24,.45);
+    --kpi-fondo:linear-gradient(180deg,#ffffff,#F5FAF7);
+    --fila-par:rgba(27,77,62,.035); --fila-hover:rgba(27,77,62,.07);
+    --fondo-degradados:
+      radial-gradient(at 0% 0%, rgba(82,190,128,.18) 0px, transparent 52%),
+      radial-gradient(at 100% 100%, rgba(27,77,62,.10) 0px, transparent 55%);
+
+    --sombra:0 10px 26px -20px rgba(9,32,24,.45);
+  }
+
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;min-height:100%}
   html{-webkit-text-size-adjust:100%}
   body{
     font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
     color:var(--texto); font-size:16px; line-height:1.45; background-color:var(--fondo);
-    background-image:
-      radial-gradient(at 0% 0%, rgba(27,77,62,.42) 0px, transparent 52%),
-      radial-gradient(at 100% 100%, rgba(17,51,41,.55) 0px, transparent 55%);
+    background-image:var(--fondo-degradados);
     background-attachment:fixed; overscroll-behavior-y:contain; min-height:100vh;
   }
   .oculto{display:none !important}
   ::-webkit-scrollbar{width:9px;height:9px}
   ::-webkit-scrollbar-track{background:var(--fondo-2)}
   ::-webkit-scrollbar-thumb{background:var(--marca);border-radius:5px}
-  ::selection{background:var(--acento);color:#08281c}
+  ::selection{background:var(--acento);color:var(--sobre-acento)}
 
   /* ---------- cabecera ---------- */
   header{
-    background:rgba(19,42,34,.93); backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--marca-borde);
+    background:var(--marco-fondo); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--marco-linea);
     padding:calc(9px + env(safe-area-inset-top)) 12px 9px;
     position:sticky; top:0; z-index:30;
     display:flex; align-items:center; gap:10px;
@@ -83,59 +148,59 @@
     display:flex;align-items:center;justify-content:center
   }
   header .titulos{min-width:0;flex:1}
-  header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.1px;
+  header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.1px;color:var(--marco-texto);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  header .sub{font-size:11.5px;color:var(--acento-texto);opacity:.72;margin-top:1px;
+  header .sub{font-size:11.5px;color:var(--marco-suave);opacity:.72;margin-top:1px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   header .punto{
     flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
-    background:var(--marca-tenue);color:var(--acento-texto);border:1px solid var(--acento-borde)
+    background:var(--marco-tenue);color:var(--marco-suave);border:1px solid var(--marco-borde)
   }
   .btn-menu{
     flex:0 0 auto;font-size:17px;line-height:1;padding:11px 12px;border-radius:12px;
-    background:var(--superficie-3);color:var(--acento-texto);border:1px solid var(--linea-fuerte)
+    background:var(--marco-superficie);color:var(--marco-suave);border:1px solid var(--marco-linea-2)
   }
   .btn-menu:active{background:var(--marca-claro)}
 
   /* ---------- menú lateral ---------- */
   .menu-lateral{
     position:fixed;top:0;bottom:0;left:0;width:274px;z-index:45;
-    background:linear-gradient(180deg,#162e26,#0f211b);
-    border-right:1px solid var(--marca-borde);
+    background:var(--marco-menu);
+    border-right:1px solid var(--marco-linea);
     display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 12px 14px;
     transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);
     box-shadow:0 0 40px rgba(0,0,0,.6);overflow-y:auto
   }
   .menu-lateral.abierto{transform:none}
   .menu-marca{display:flex;align-items:center;gap:11px;padding:4px 6px 14px;
-    border-bottom:1px solid var(--linea);margin-bottom:12px}
+    border-bottom:1px solid var(--marco-linea);margin-bottom:12px}
   .menu-marca .ic{
     width:44px;height:44px;border-radius:14px;font-size:21px;flex:0 0 auto;
     background:linear-gradient(135deg,#276e58,#113329);border:1px solid #3b8c73;
     display:flex;align-items:center;justify-content:center
   }
-  .menu-marca b{display:block;font-size:15px;font-weight:800;letter-spacing:.2px}
-  .menu-marca span{font-size:11px;color:var(--acento-texto);opacity:.72}
+  .menu-marca b{display:block;font-size:15px;font-weight:800;letter-spacing:.2px;color:var(--marco-texto)}
+  .menu-marca span{font-size:11px;color:var(--marco-suave);opacity:.72}
   .menu-lista{display:flex;flex-direction:column;gap:4px}
   .menu-item{
     display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-    background:none;color:var(--acento-texto);border:none;border-left:3px solid transparent;
+    background:none;color:var(--marco-suave);border:none;border-left:3px solid transparent;
     border-radius:12px;padding:13px 12px;font-size:14.5px;font-weight:700
   }
   .menu-item .ic{font-size:18px;width:22px;text-align:center}
   .menu-item .cuenta{margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;
-    background:var(--marca-tenue);border:1px solid var(--acento-borde);color:var(--acento-texto)}
-  .menu-item:hover,.menu-item.on{background:var(--superficie-3);color:#fff;border-left-color:var(--acento)}
+    background:var(--marco-tenue);border:1px solid var(--marco-borde);color:var(--marco-suave)}
+  .menu-item:hover,.menu-item.on{background:var(--marco-superficie);color:var(--marco-texto);border-left-color:var(--marco-acento)}
   .menu-item.on{font-weight:800}
   .menu-seccion{margin:16px 6px 7px;font-size:10.5px;font-weight:800;letter-spacing:1.1px;
-    text-transform:uppercase;color:var(--gris)}
+    text-transform:uppercase;color:var(--marco-gris)}
   .menu-pie{margin-top:auto;padding-top:14px}
   .menu-pie button{
     width:100%;display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:7px;
-    background:var(--superficie-2);color:var(--acento-texto);border:1px solid var(--linea-fuerte);
+    background:var(--marco-superficie-2);color:var(--marco-suave);border:1px solid var(--marco-linea-2);
     border-radius:12px;padding:11px 12px;font-size:13px;font-weight:700
   }
-  .menu-info{font-size:10.5px;color:var(--gris);line-height:1.5;margin-top:8px;padding:0 4px;
+  .menu-info{font-size:10.5px;color:var(--marco-gris);line-height:1.5;margin-top:8px;padding:0 4px;
     word-break:break-word;white-space:pre-line}
   .fondo-menu{position:fixed;inset:0;background:rgba(6,16,12,.62);z-index:40;
     backdrop-filter:blur(2px)}
@@ -154,7 +219,7 @@
     width:100%;padding:12px;font-size:16px;font-family:inherit;color:var(--texto);
     border:1.5px solid var(--linea-fuerte);border-radius:11px;background:var(--hundido)
   }
-  input::placeholder,textarea::placeholder{color:#5f7a88}
+  input::placeholder,textarea::placeholder{color:var(--placeholder)}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acento);
     box-shadow:0 0 0 3px var(--marca-tenue)}
   select option{background:var(--hundido);color:var(--texto)}
@@ -186,8 +251,8 @@
   .btn-azul:active,.btn-marca:active{filter:brightness(1.12)}
   .btn-gris{background:var(--superficie-3);color:var(--acento-texto);border:1px solid var(--linea-fuerte)}
   .btn-gris:hover{background:var(--marca-claro);color:#fff}
-  .btn-rojo{background:var(--rojo-f);color:#fca5a5;border:1px solid rgba(248,113,113,.4)}
-  .btn-naranja{background:var(--naranja-f);color:#fdba74;border:1px solid rgba(251,146,60,.4)}
+  .btn-rojo{background:var(--rojo-f);color:var(--rojo-texto);border:1px solid rgba(248,113,113,.4)}
+  .btn-naranja{background:var(--naranja-f);color:var(--naranja-texto);border:1px solid rgba(251,146,60,.4)}
   .btn-verde{background:var(--verde-f);color:var(--acento);border:1px solid rgba(52,211,153,.4)}
   .btn-ancho{width:100%;display:block}
   .btn-grande{font-size:17px;padding:16px}
@@ -208,17 +273,17 @@
     background:var(--superficie-2);border-left:4px solid var(--acento)}
   .producto .n{font-size:15px;font-weight:800}
   .producto .m{font-size:12px;color:var(--gris);margin-top:3px}
-  .aviso{background:var(--amarillo-f);border:1px solid rgba(251,191,36,.4);color:#fde68a;
+  .aviso{background:var(--amarillo-f);border:1px solid rgba(251,191,36,.4);color:var(--aviso-texto);
     border-radius:11px;padding:11px;font-size:13px;margin-top:10px}
 
   /* ---------- semáforo / lista ---------- */
   .reg{background:var(--superficie);border:1px solid var(--marca-borde);border-left:5px solid var(--marca);
     border-radius:14px;padding:13px;margin-bottom:9px;box-shadow:var(--sombra)}
   .reg .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-  .reg .desc{font-size:15px;font-weight:800;line-height:1.25;color:#fff}
+  .reg .desc{font-size:15px;font-weight:800;line-height:1.25;color:var(--texto)}
   .reg .meta{font-size:12px;color:var(--gris);margin-top:4px}
   .reg .dias{font-size:14px;font-weight:800;white-space:nowrap;text-align:right}
-  .reg .estado{font-size:10.5px;font-weight:800;color:#08281c;background:var(--acento);
+  .reg .estado{font-size:10.5px;font-weight:800;color:var(--sobre-acento);background:var(--acento);
     display:inline-block;padding:3px 9px;border-radius:999px;margin-top:5px;text-transform:uppercase;
     letter-spacing:.4px}
   .reg .acciones{display:flex;gap:7px;margin-top:11px}
@@ -235,8 +300,8 @@
     padding:10px 9px;white-space:nowrap;border-bottom:1px solid var(--marca-borde)
   }
   table.datos td{padding:9px;border-bottom:1px solid var(--linea);vertical-align:top}
-  table.datos tbody tr:nth-child(even){background:rgba(82,190,128,.045)}
-  table.datos tbody tr:hover{background:rgba(82,190,128,.10)}
+  table.datos tbody tr:nth-child(even){background:var(--fila-par)}
+  table.datos tbody tr:hover{background:var(--fila-hover)}
   table.datos tbody tr:last-child td{border-bottom:none}
   table.datos td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;white-space:nowrap;color:var(--acento-texto)}
   table.datos td.cen{text-align:center;white-space:nowrap}
@@ -246,13 +311,13 @@
 
   /* ---------- kpis ---------- */
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-  .kpi{background:linear-gradient(180deg,var(--superficie),#101f1a);border:1px solid var(--marca-borde);
+  .kpi{background:var(--kpi-fondo);border:1px solid var(--marca-borde);
     border-top:4px solid var(--marca);border-radius:14px;padding:14px;box-shadow:var(--sombra)}
   .kpi .v{font-size:29px;font-weight:800;line-height:1;letter-spacing:-.5px}
   .kpi .e{font-size:10.5px;color:var(--gris);margin-top:6px;font-weight:800;text-transform:uppercase;
     letter-spacing:.7px}
   .barra{height:11px;border-radius:999px;overflow:hidden;display:flex;margin:8px 0 12px;
-    background:rgba(0,0,0,.35)}
+    background:var(--barra-fondo)}
   .barra span{display:block;height:100%}
   .leyenda{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 0;
     border-bottom:1px dashed var(--linea)}
@@ -263,20 +328,20 @@
   /* ---------- navegación inferior (celular y tableta) ---------- */
   nav{
     position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
-    background:rgba(19,42,34,.96);backdrop-filter:blur(10px);border-top:1px solid var(--marca-borde);
+    background:var(--marco-fondo-2);backdrop-filter:blur(10px);border-top:1px solid var(--marco-linea);
     padding-bottom:env(safe-area-inset-bottom)
   }
   nav button{
     flex:1;background:none;border-radius:0;padding:9px 4px 10px;font-size:10.5px;font-weight:700;
-    color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:3px
+    color:var(--marco-gris);display:flex;flex-direction:column;align-items:center;gap:3px
   }
   nav button .ic{font-size:19px;line-height:1}
-  nav button.on{color:var(--acento)}
+  nav button.on{color:var(--marco-acento)}
   nav button.on .ic{transform:translateY(-1px)}
 
   /* ---------- overlays ---------- */
   .overlay{
-    position:fixed;inset:0;background:rgba(5,13,10,.8);z-index:50;
+    position:fixed;inset:0;background:var(--velo);z-index:50;
     display:flex;align-items:center;justify-content:center;padding:18px
   }
   .overlay .caja{background:var(--superficie);border:1px solid var(--marca-borde);border-radius:18px;
@@ -304,17 +369,17 @@
     border-top:1px solid var(--marca-borde)
   }
   .scan-pie .t{font-size:15px;font-weight:800}
-  .scan-pie .s{font-size:11.5px;color:var(--acento-texto);opacity:.75;margin-top:4px}
+  .scan-pie .s{font-size:11.5px;color:var(--marco-suave);opacity:.75;margin-top:4px}
   .scan-botones{display:flex;gap:8px;margin-top:12px}
-  .scan-pie button{margin-top:0;flex:1;background:var(--superficie-3);color:var(--acento-texto);
-    border:1px solid var(--linea-fuerte);padding:12px}
+  .scan-pie button{margin-top:0;flex:1;background:var(--marco-superficie);color:var(--marco-suave);
+    border:1px solid var(--marco-linea-2);padding:12px}
   .scan-pie button#btn-cerrar-escaneo{width:100%;margin-top:8px;background:transparent;
-    color:var(--gris);border-color:var(--linea)}
+    color:var(--marco-gris);border-color:var(--marco-linea)}
   .scan-pie button.linterna-on{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2503;border-color:#fcd34d}
 
   #toast{
     position:fixed;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom));
-    background:var(--superficie-3);color:#fff;padding:12px 17px;border-radius:13px;font-size:14px;
+    background:var(--superficie-3);color:var(--texto);padding:12px 17px;border-radius:13px;font-size:14px;
     z-index:60;max-width:88%;text-align:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.9);
     border:1px solid var(--marca-borde)
   }
@@ -388,6 +453,7 @@
     </div>
     <div class="menu-pie">
       <div class="menu-seccion" style="margin-top:2px">Aplicación</div>
+      <button id="menu-tema">🌙 Tema oscuro</button>
       <button id="menu-refrescar">🔄 Refrescar datos</button>
       <button id="menu-instalar" class="oculto">⬇️ Instalar en el teléfono</button>
       <button id="menu-conexion">⚙️ Conexión</button>
@@ -596,7 +662,7 @@
     <p>Escribe la clave del sistema para continuar.</p>
     <input id="campo-clave" type="password" autocomplete="current-password" placeholder="Clave">
     <button class="btn-azul btn-ancho" id="btn-entrar" style="margin-top:12px">Entrar</button>
-    <div id="error-clave" class="ayuda" style="color:#B91C1C;min-height:16px"></div>
+    <div id="error-clave" class="ayuda" style="color:var(--rojo);min-height:16px"></div>
   </div>
 </div>
 
@@ -658,7 +724,10 @@ var EST = {
   intentoFabrica: false,
   instalable: null,
   dispositivo: 'movil',   /* movil · tablet · escritorio (se detecta sola) */
-  ancho: 0
+  ancho: 0,
+  tema: 'claro',          /* claro · oscuro (se elige en el menú y se recuerda) */
+  ultimaLista: null,      /* último apiListar, para repintar al cambiar de tema */
+  ultimoResultado: null
 };
 
 var ZXING_URL = 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.2.1/umd/zxing-browser.min.js';
@@ -672,11 +741,11 @@ function esc(s){
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* ---------- color de estado sobre fondo oscuro ----------
+/* ---------- color de estado con el tema puesto ----------
    El semáforo no cambia de significado (rojo vencido, ámbar próximo…), pero
-   los tonos oscuros que se ven bien sobre papel blanco desaparecerían sobre
-   el verde profundo. Esta tabla traduce el color que manda el servidor a su
-   versión clara, y "tinte" lo vuelve un fondo translúcido. */
+   el mismo rojo no se lee igual sobre verde profundo que sobre blanco. El
+   servidor manda los tonos de papel (los de la hoja); esta tabla los traduce
+   a su versión clara sobre fondo oscuro y "tinte" los vuelve translúcidos. */
 var COLOR_EN_OSCURO = {
   '#B91C1C': '#f87171',   /* vencido     */
   '#BE123C': '#fb7185',   /* en alerta   */
@@ -686,9 +755,34 @@ var COLOR_EN_OSCURO = {
   '#64748B': '#94a3b8'    /* sin fecha   */
 };
 
+/* El camino de vuelta: si algo llega ya en tono claro (o el tema es claro),
+   se devuelve el tono de papel equivalente. */
+var COLOR_EN_CLARO = {
+  '#F87171': '#B91C1C', '#FB7185': '#BE123C', '#FB923C': '#C2410C',
+  '#FBBF24': '#A16207', '#34D399': '#15803D', '#94A3B8': '#64748B'
+};
+
 function aclarar(hex){
   var k = String(hex || '').toUpperCase();
+  if (EST.tema === 'claro') return COLOR_EN_CLARO[k] || hex || '#64748B';
   return COLOR_EN_OSCURO[k] || hex || '#94a3b8';
+}
+
+/* Colores de los KPIs y de la leyenda del Panel (no vienen del servidor). */
+var COLOR_KPI = {
+  vencidos:   { oscuro:'#f87171', claro:'#B91C1C' },
+  alertas:    { oscuro:'#fb7185', claro:'#BE123C' },
+  criticas:   { oscuro:'#fbbf24', claro:'#A16207' },
+  activos:    { oscuro:'#52BE80', claro:'#15803D' },
+  proximos:   { oscuro:'#fb923c', claro:'#C2410C' },
+  vigilancia: { oscuro:'#fbbf24', claro:'#A16207' },
+  enRegla:    { oscuro:'#34d399', claro:'#15803D' },
+  sinFecha:   { oscuro:'#94a3b8', claro:'#64748B' }
+};
+
+function colorKpi(nombre){
+  var c = COLOR_KPI[nombre] || COLOR_KPI.sinFecha;
+  return EST.tema === 'claro' ? c.claro : c.oscuro;
 }
 
 function tinte(hex, alfa){
@@ -852,6 +946,36 @@ function leerClaveGuardada(){
   try { return localStorage.getItem('fifo_clave') || ''; } catch(e){ return ''; }
 }
 
+/* =================== tema claro / oscuro ===============================
+   El tema es solo piel: no cambia ningún dato, filtro ni regla del semáforo.
+   Se guarda en el teléfono y se aplica antes de pintar (ver el <head>). */
+
+function aplicarTema(t, sinGuardar){
+  EST.tema = (t === 'oscuro') ? 'oscuro' : 'claro';
+  document.documentElement.setAttribute('data-tema', EST.tema);
+  var b = $('menu-tema');
+  if (b) b.textContent = EST.tema === 'claro' ? '🌙 Tema oscuro' : '☀️ Tema claro';
+  if (!sinGuardar){ try { localStorage.setItem('fifo_tema', EST.tema); } catch(e){} }
+  repintarTema();
+}
+
+function alternarTema(){
+  aplicarTema(EST.tema === 'claro' ? 'oscuro' : 'claro');
+  toast(EST.tema === 'claro' ? 'Tema claro' : 'Tema oscuro', 1500);
+}
+
+/** Vuelve a pintar lo que ya está en pantalla con los colores del tema nuevo.
+    No pide datos: usa la última respuesta guardada. */
+function repintarTema(){
+  var r = EST.ultimaLista;
+  if (r){
+    pintarKPIs(r.kpis);
+    pintarRegistros(r);
+    pintarTabla(r);
+  }
+  if (EST.ultimoResultado && $('resultado')) $('resultado').innerHTML = htmlResultado(EST.ultimoResultado);
+}
+
 /* =================== dispositivo: celular / tableta / escritorio ========
    La app se adapta sola. En el computador el menú lateral queda fijo y el
    contenido se ensancha; en el celular el menú se desliza y manda la barra
@@ -902,6 +1026,7 @@ function alternarMenu(){
 function iniciar(){
   $('reloj').textContent = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short' });
   EST.clave = leerClaveGuardada();
+  aplicarTema(document.documentElement.getAttribute('data-tema'), true);
   detectarDispositivo();
   configurarModo();
   arrancarSesion();
@@ -1164,7 +1289,7 @@ function pintarCandidatos(lista){
     b.className = 'btn-gris btn-ancho';
     b.style.textAlign = 'left';
     b.style.marginBottom = '6px';
-    b.innerHTML = '<b>' + esc(p.desc_item || p.item) + '</b><br><span style="font-size:11.5px;color:#64748B">' +
+    b.innerHTML = '<b>' + esc(p.desc_item || p.item) + '</b><br><span style="font-size:11.5px;color:var(--gris)">' +
       esc([p.item, p.referencia, p.proveedor].filter(function(x){ return x; }).join(' · ')) + '</span>';
     b.onclick = function(){ fijarProducto(p); };
     caja.appendChild(b);
@@ -1219,15 +1344,22 @@ function guardar(){
   });
 }
 
-function pintarResultado(r){
-  $('resultado').innerHTML =
-    '<div class="reg" style="border-left-color:' + esc(r.color) + ';background:' + esc(r.fondo) + '">' +
+function htmlResultado(r){
+  var c = aclarar(r.color);
+  var fondo = EST.tema === 'claro' ? tinte(c, .07) : esc(r.fondo);
+  return '<div class="reg" style="border-left-color:' + c + ';background:' + fondo + '">' +
       '<div class="top"><div><div class="desc">' + esc(r.desc) + '</div>' +
       '<div class="meta">' + esc(r.cantidad) + ' unidades · ' + esc(r.proveedor || 'sin proveedor') +
       ' · vence ' + esc(r.fechaTexto) + '</div></div>' +
-      '<div class="dias" style="color:' + esc(r.color) + '">' + esc(r.diasTexto) + '</div></div>' +
-      '<div class="estado" style="background:' + esc(r.color) + '">' + esc(r.icono) + ' ' + esc(r.estado) + '</div>' +
+      '<div class="dias" style="color:' + c + '">' + esc(r.diasTexto) + '</div></div>' +
+      '<div class="estado" style="background:' + tinte(c, .16) + ';color:' + c +
+        ';border:1px solid ' + tinte(c, .38) + '">' + esc(r.icono) + ' ' + esc(r.estado) + '</div>' +
     '</div>';
+}
+
+function pintarResultado(r){
+  EST.ultimoResultado = r;
+  $('resultado').innerHTML = htmlResultado(r);
   toast('✔ Registrado: ' + r.diasTexto);
 }
 
@@ -1251,6 +1383,7 @@ function cargarLista(){
       revisar(r);
       EST.sinConexion = false;
       if (mio !== secuenciaLista) return;       /* llegó tarde: ya se pidió una lista más nueva */
+      EST.ultimaLista = r;
       pintarKPIs(r.kpis);
       pintarProveedores(r.proveedores || []);
       pintarRegistros(r);
@@ -1290,10 +1423,10 @@ function pintarCuentaMenu(k){
 function pintarKPIs(k){
   if (!k) return;
   var tarjetas = [
-    { v: k.vencidos || 0,  e: 'Vencidos',        c: '#f87171' },
-    { v: k.alertas || 0,   e: 'En alerta',       c: '#fb7185' },
-    { v: k.unidadesCriticas || 0, e: 'Unidades críticas', c: '#fbbf24' },
-    { v: k.activos || 0,   e: 'Lotes activos',   c: '#52BE80' }
+    { v: k.vencidos || 0,  e: 'Vencidos',        c: colorKpi('vencidos') },
+    { v: k.alertas || 0,   e: 'En alerta',       c: colorKpi('alertas') },
+    { v: k.unidadesCriticas || 0, e: 'Unidades críticas', c: colorKpi('criticas') },
+    { v: k.activos || 0,   e: 'Lotes activos',   c: colorKpi('activos') }
   ];
   $('panel-kpis').innerHTML = tarjetas.map(function(t){
     return '<div class="kpi" style="border-top-color:' + t.c + '"><div class="v" style="color:' + t.c + '">' +
@@ -1301,12 +1434,12 @@ function pintarKPIs(k){
   }).join('');
 
   var partes = [
-    { n: k.vencidos || 0,   c: '#f87171', t: 'Vencidos' },
-    { n: k.alertas || 0,    c: '#fb7185', t: 'En alerta (' + (k.diasAlerta ? k.diasAlerta : '3, 8, 15, 30') + ')' },
-    { n: k.proximos || 0,   c: '#fb923c', t: 'Próximos a vencer' },
-    { n: k.vigilancia || 0, c: '#fbbf24', t: 'Vigilancia' },
-    { n: k.enRegla || 0,    c: '#34d399', t: 'En regla' },
-    { n: k.sinFecha || 0,   c: '#94a3b8', t: 'Sin fecha' }
+    { n: k.vencidos || 0,   c: colorKpi('vencidos'), t: 'Vencidos' },
+    { n: k.alertas || 0,    c: colorKpi('alertas'), t: 'En alerta (' + (k.diasAlerta ? k.diasAlerta : '3, 8, 15, 30') + ')' },
+    { n: k.proximos || 0,   c: colorKpi('proximos'), t: 'Próximos a vencer' },
+    { n: k.vigilancia || 0, c: colorKpi('vigilancia'), t: 'Vigilancia' },
+    { n: k.enRegla || 0,    c: colorKpi('enRegla'), t: 'En regla' },
+    { n: k.sinFecha || 0,   c: colorKpi('sinFecha'), t: 'Sin fecha' }
   ];
   var total = Math.max(1, k.activos);
   $('panel-barra').innerHTML = partes.map(function(p){
@@ -1840,6 +1973,7 @@ document.addEventListener('DOMContentLoaded', function(){
   $('fondo-menu').onclick = cerrarMenu;
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cerrarMenu(); });
   $('menu-refrescar').onclick = function(){ cerrarMenu(); cargarLista(); toast('Datos actualizados'); };
+  $('menu-tema').onclick = function(){ cerrarMenu(); alternarTema(); };
   $('menu-instalar').onclick = function(){
     cerrarMenu();
     if (!EST.instalable){ toast('Usa el menú del navegador ▸ Añadir a pantalla de inicio'); return; }

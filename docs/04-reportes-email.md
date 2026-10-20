@@ -163,7 +163,10 @@ El objeto `data` que recibe la plantilla viene precalculado desde `construirRepo
 
 El correo y la aplicación comparten **una sola identidad de marca**: verde profundo
 `#1B4D3E`, acento `#52BE80`, lienzo oscuro `#0d1a15`, superficie `#132A22` y bordes
-`#275d4c`. Los colores del semáforo llegan ya en su **tono claro** desde `Code.gs`
+`#275d4c`. (La app tiene además un **tema claro de fábrica**, que deja el contenido en
+blanco y reserva ese verde para la cabecera y el menú; el correo se queda oscuro a
+propósito, porque es donde mejor se lee en pantalla de computador.) Los colores del
+semáforo llegan ya en su **tono claro** desde `Code.gs`
 (`colorEstado_()`/`fondoEstado_()`), porque sobre fondo oscuro los tonos oscuros no se
 leerían: rojo `#f87171` vencido, rosa `#fb7185` alerta, naranja `#fb923c` próximo,
 ámbar `#fbbf24` vigilancia, verde `#34d399` en regla. El fondo de cada pastilla es una

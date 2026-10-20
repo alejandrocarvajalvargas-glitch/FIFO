@@ -92,7 +92,7 @@ subdirectorio correcto.
 1. `node tools/build-onepager.js` — regenera el bundle y `pwa/index.html`.
 2. `tests/fifo_test.js` — reglas de días y estados.
 3. `tests/fifo_api.js` **y** `tests/fifo_api.js bundle` — 170 comprobaciones en los dos modos.
-4. `tests/fifo_ui.js` - 206 comprobaciones de la interfaz y la PWA.
+4. `tests/fifo_ui.js` - 213 comprobaciones de la interfaz y la PWA.
 5. `tests/fifo_render.js` y `tests/fifo_e2e.js` — plantilla real y punta a punta.
 6. **Guardián del bundle:** si quedaron archivos generados distintos a lo que hay commiteado, el
    trabajo falla con el diff. Así nadie pega en Apps Script un bundle viejo.

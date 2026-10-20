@@ -15,7 +15,7 @@
  *
  * Al cambiar la app de forma importante, sube el número de VERSION.
  */
-const VERSION = 'fifo-v2';
+const VERSION = 'fifo-v3';
 const FUENTES = 'fifo-fuentes-v1';
 const ARMAZON = [
   './',

@@ -36,8 +36,12 @@ function uniq(a) { return Array.from(new Set(a)); }
 function matchAll(re, s) { const out = []; let m; while ((m = re.exec(s))) out.push(m); return out; }
 
 const html = fs.readFileSync(APP, 'utf8');
-const script = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
-const markup = html.slice(0, html.indexOf('<script>'));
+/* El <head> lleva un mini-script que aplica el tema antes de pintar; el
+   código de la app es el primer <script> dentro del <body>. */
+const iCuerpo = html.indexOf('<body>');
+const iScript = html.indexOf('<script>', iCuerpo);
+const script = html.slice(iScript + 8, html.lastIndexOf('</script>'));
+const markup = html.slice(iCuerpo, iScript);
 const css = html.slice(html.indexOf('<style>') + 7, html.indexOf('</style>'));
 
 /* ---------------------------------------------------------------- 1 · ids */
@@ -316,6 +320,18 @@ check(/#1B4D3E/.test(css), 'la hoja de estilo no usa el verde corporativo #1B4D3
 check(/#52BE80/.test(css), 'falta el verde de acento #52BE80');
 check(/Plus Jakarta Sans/.test(html), 'no se carga la tipografía corporativa Plus Jakarta Sans');
 check(!/#0F2B46/.test(html), 'queda el azul anterior (#0F2B46) en algún rincón');
+
+/* ---------------- 6d · tema claro / oscuro --------------------------------
+   El tema es solo piel: la paleta clara vive en variables y el semáforo usa
+   sus tonos de papel. Nada de esto puede cambiar una regla de negocio. */
+check(/id="menu-tema"/.test(markup), 'falta el botón de tema en el menú');
+check(/html\[data-tema="claro"\]/.test(css), 'no existe la paleta clara');
+check(/--superficie:#ffffff/.test(css), 'las tarjetas del tema claro no son blancas');
+check(/setAttribute\('data-tema'/.test(html.slice(0, iCuerpo)),
+  'el tema no se aplica antes de pintar (habría un destello oscuro)');
+check(/localStorage\.setItem\('fifo_tema'/.test(script), 'el tema elegido no se recuerda');
+check(/COLOR_EN_CLARO/.test(script), 'los colores de estado no se adaptan al fondo claro');
+check(/function colorKpi\(/.test(script), 'los KPIs no cambian de color con el tema');
 
 check(/id="menu-lateral"/.test(markup), 'falta el menú lateral');
 check(/id="btn-menu"/.test(markup), 'falta el botón ☰ que abre el menú lateral');
