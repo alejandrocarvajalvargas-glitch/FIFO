@@ -129,6 +129,29 @@
     background-attachment:fixed; overscroll-behavior-y:contain; min-height:100vh;
   }
   .oculto{display:none !important}
+  .sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+
+  /* ---------- iconos del dock (SVG con volumen) ---------- */
+  .dock-icon{
+    position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    border-radius:14px;
+    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18), inset 0 -6px 12px rgba(0,0,0,.18),
+      0 8px 16px -12px rgba(0,0,0,.9);
+    transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s,
+      background .22s, border-color .22s;
+    transform-style:preserve-3d;will-change:transform
+  }
+  .dock-icon::after{
+    content:"";position:absolute;inset:1px;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(145deg,rgba(255,255,255,.24),transparent 42%);opacity:.6
+  }
+  .dock-icon svg{
+    position:relative;z-index:1;display:block;width:30px;height:30px;
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.38))
+  }
+
   ::-webkit-scrollbar{width:9px;height:9px}
   ::-webkit-scrollbar-track{background:var(--fondo-2)}
   ::-webkit-scrollbar-thumb{background:var(--marca);border-radius:5px}
@@ -143,10 +166,11 @@
     display:flex; align-items:center; gap:10px;
   }
   header .marca-icono{
-    width:40px;height:40px;flex:0 0 auto;border-radius:13px;font-size:19px;
+    width:40px;height:40px;flex:0 0 auto;border-radius:13px;
     background:linear-gradient(135deg,#276e58,#113329); border:1px solid #3b8c73;
     display:flex;align-items:center;justify-content:center
   }
+  header .marca-icono svg{width:25px;height:25px;display:block}
   header .titulos{min-width:0;flex:1}
   header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.1px;color:var(--marco-texto);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -175,23 +199,31 @@
   .menu-marca{display:flex;align-items:center;gap:11px;padding:4px 6px 14px;
     border-bottom:1px solid var(--marco-linea);margin-bottom:12px}
   .menu-marca .ic{
-    width:44px;height:44px;border-radius:14px;font-size:21px;flex:0 0 auto;
+    width:44px;height:44px;border-radius:14px;flex:0 0 auto;
     background:linear-gradient(135deg,#276e58,#113329);border:1px solid #3b8c73;
     display:flex;align-items:center;justify-content:center
   }
+  .menu-marca .ic svg{width:30px;height:30px;display:block}
   .menu-marca b{display:block;font-size:15px;font-weight:800;letter-spacing:.2px;color:var(--marco-texto)}
   .menu-marca span{font-size:11px;color:var(--marco-suave);opacity:.72}
   .menu-lista{display:flex;flex-direction:column;gap:4px}
   .menu-item{
-    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;
     background:none;color:var(--marco-suave);border:none;border-left:3px solid transparent;
-    border-radius:12px;padding:13px 12px;font-size:14.5px;font-weight:700
+    border-radius:12px;padding:9px 10px;font-size:14.5px;font-weight:700
   }
-  .menu-item .ic{font-size:18px;width:22px;text-align:center}
+  .menu-item .dock-icon{width:38px;height:38px;border-radius:11px}
+  .menu-item .dock-icon svg{width:25px;height:25px}
+  .menu-item .menu-texto{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .menu-item .cuenta{margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;
     background:var(--marco-tenue);border:1px solid var(--marco-borde);color:var(--marco-suave)}
   .menu-item:hover,.menu-item.on{background:var(--marco-superficie);color:var(--marco-texto);border-left-color:var(--marco-acento)}
   .menu-item.on{font-weight:800}
+  .menu-item.on .dock-icon{
+    background:linear-gradient(180deg,rgba(82,190,128,.36),rgba(82,190,128,.12));
+    border-color:rgba(82,190,128,.55);
+    box-shadow:0 8px 18px -10px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.45)
+  }
   .menu-seccion{margin:16px 6px 7px;font-size:10.5px;font-weight:800;letter-spacing:1.1px;
     text-transform:uppercase;color:var(--marco-gris)}
   .menu-pie{margin-top:auto;padding-top:14px}
@@ -206,7 +238,7 @@
     backdrop-filter:blur(2px)}
 
   /* ---------- estructura ---------- */
-  main{padding:12px 12px calc(92px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto;width:100%}
+  main{padding:12px 12px calc(118px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto;width:100%}
   .tarjeta{
     background:var(--superficie);border:1px solid var(--marca-borde);border-radius:var(--radio);
     padding:15px;margin-bottom:12px;box-shadow:var(--sombra)
@@ -325,19 +357,57 @@
   .leyenda .cuenta{margin-left:auto;font-weight:800}
   .punto-color{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 
-  /* ---------- navegación inferior (celular y tableta) ---------- */
+  /* ---------- dock inferior (celular y tableta) ---------- */
   nav{
-    position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
-    background:var(--marco-fondo-2);backdrop-filter:blur(10px);border-top:1px solid var(--marco-linea);
-    padding-bottom:env(safe-area-inset-bottom)
+    position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:30;
+    display:flex;align-items:flex-end;justify-content:space-around;gap:2px;
+    padding:8px 6px 7px;border-radius:24px;
+    background:linear-gradient(180deg,rgba(22,46,38,.82),rgba(10,25,20,.90));
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.90), inset 0 1px 0 rgba(255,255,255,.18);
+    backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
+    perspective:700px
   }
   nav button{
-    flex:1;background:none;border-radius:0;padding:9px 4px 10px;font-size:10.5px;font-weight:700;
-    color:var(--marco-gris);display:flex;flex-direction:column;align-items:center;gap:3px
+    flex:1;min-width:0;background:none;border:0;border-radius:16px;padding:2px 2px 0;
+    color:var(--marco-gris);display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:10px;font-weight:700;letter-spacing:.15px;cursor:pointer
   }
-  nav button .ic{font-size:19px;line-height:1}
-  nav button.on{color:var(--marco-acento)}
-  nav button.on .ic{transform:translateY(-1px)}
+  nav button .dock-icon{width:48px;height:48px}
+  nav button .dock-label{font-size:10px;line-height:1.1;white-space:nowrap;transition:color .2s}
+  nav button .dock-punto{width:4px;height:4px;border-radius:50%;background:transparent;
+    transition:background .2s, box-shadow .2s, transform .2s}
+  nav button.on{color:#fff}
+  nav button.on .dock-icon{
+    width:58px;height:58px;margin-top:-12px;border-radius:18px;
+    background:linear-gradient(180deg,rgba(82,190,128,.38),rgba(82,190,128,.12));
+    border-color:rgba(82,190,128,.62);
+    box-shadow:0 14px 24px -10px rgba(0,0,0,.90), inset 0 1px 0 rgba(255,255,255,.55),
+      0 0 0 1px rgba(82,190,128,.22);
+    transform:translateY(-2px) scale(1.03)
+  }
+  nav button.on .dock-icon svg{width:38px;height:38px}
+  nav button.on .dock-label{color:#fff;font-weight:800}
+  nav button.on .dock-punto{background:var(--marco-acento);box-shadow:0 0 9px var(--marco-acento)}
+
+  @media (hover:hover) and (pointer:fine){
+    nav button:hover .dock-icon{
+      transform:translateY(-8px) scale(1.12) rotateX(7deg);
+      background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.07));
+      border-color:rgba(255,255,255,.32);
+      box-shadow:0 18px 26px -12px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.55)
+    }
+    nav button:hover .dock-icon svg{width:34px;height:34px}
+    nav button:hover .dock-label{color:#fff}
+    nav button.on:hover .dock-icon{
+      background:linear-gradient(180deg,rgba(82,190,128,.48),rgba(82,190,128,.18))
+    }
+    nav button.on:hover .dock-icon svg{width:40px;height:40px}
+    .menu-item:hover .dock-icon{
+      transform:translateY(-2px) scale(1.10) rotateX(6deg);
+      border-color:rgba(255,255,255,.30)
+    }
+  }
 
   /* ---------- overlays ---------- */
   .overlay{
@@ -378,7 +448,7 @@
   .scan-pie button.linterna-on{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2503;border-color:#fcd34d}
 
   #toast{
-    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom));
+    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));
     background:var(--superficie-3);color:var(--texto);padding:12px 17px;border-radius:13px;font-size:14px;
     z-index:60;max-width:88%;text-align:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.9);
     border:1px solid var(--marca-borde)
@@ -395,7 +465,7 @@
      ===================================================================== */
 
   /* ---------- tableta ---------- */
-  html[data-dispositivo="tablet"] main{max-width:920px;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+  html[data-dispositivo="tablet"] main{max-width:920px;padding:16px 16px calc(122px + env(safe-area-inset-bottom))}
   html[data-dispositivo="tablet"] .kpis{grid-template-columns:repeat(4,1fr)}
   html[data-dispositivo="tablet"] .tarjeta{padding:17px}
 
@@ -433,12 +503,98 @@
 </head>
 <body>
 
+  <!-- Iconos del dock. Se dibujan una vez y se reutilizan con <use>:
+       así el HTML no repite ocho SVG y el navegador los cachea. -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="gMetal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f8fafc"/><stop offset=".45" stop-color="#cbd5e1"/>
+        <stop offset="1" stop-color="#64748b"/>
+      </linearGradient>
+      <linearGradient id="gPaper" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e2e8f0"/>
+        <stop offset="1" stop-color="#94a3b8"/>
+      </linearGradient>
+      <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6ee7b7"/><stop offset=".5" stop-color="#34d399"/>
+        <stop offset="1" stop-color="#15803d"/>
+      </linearGradient>
+      <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#7dd3fc"/><stop offset=".55" stop-color="#38bdf8"/>
+        <stop offset="1" stop-color="#0369a1"/>
+      </linearGradient>
+      <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fdba74"/><stop offset=".55" stop-color="#fb923c"/>
+        <stop offset="1" stop-color="#c2410c"/>
+      </linearGradient>
+      <radialGradient id="gLens" cx=".35" cy=".3" r=".8">
+        <stop offset="0" stop-color="#7dd3fc"/><stop offset=".45" stop-color="#1d4ed8"/>
+        <stop offset="1" stop-color="#020617"/>
+      </radialGradient>
+    </defs>
+
+    <symbol id="ico-caja" viewBox="0 0 64 64">
+      <path d="M32 7l23 12v26L32 57 9 45V19z" fill="url(#gGreen)" stroke="#14513f"
+        stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M9 19l23 12 23-12M32 31v26" fill="none" stroke="#d1fae5"
+        stroke-width="1.6" stroke-linejoin="round" opacity=".85"/>
+      <path d="M20 13l23 12v9" fill="none" stroke="#a7f3d0" stroke-width="1.4" opacity=".6"/>
+    </symbol>
+
+    <symbol id="ico-camara" viewBox="0 0 64 64">
+      <path d="M10 22h44a6 6 0 0 1 6 6v22a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6V28a6 6 0 0 1 6-6z"
+        fill="url(#gMetal)" stroke="#475569" stroke-width="1.5"/>
+      <path d="M22 22l4-7h12l4 7" fill="#94a3b8" stroke="#475569" stroke-width="1.5"
+        stroke-linejoin="round"/>
+      <path d="M11 26h42" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".4"/>
+      <circle cx="32" cy="39" r="13" fill="#0f172a" stroke="#e2e8f0" stroke-width="2"/>
+      <circle cx="32" cy="39" r="9" fill="url(#gLens)"/>
+      <circle cx="28.5" cy="35" r="3" fill="#ffffff" opacity=".7"/>
+      <circle cx="49" cy="29" r="2.5" fill="#fbbf24"/>
+    </symbol>
+
+    <symbol id="ico-lista" viewBox="0 0 64 64">
+      <rect x="13" y="10" width="38" height="46" rx="8" fill="url(#gPaper)"
+        stroke="#64748b" stroke-width="1.5"/>
+      <rect x="23" y="6" width="18" height="9" rx="4" fill="url(#gMetal)"
+        stroke="#475569" stroke-width="1.2"/>
+      <rect x="19" y="22" width="26" height="4" rx="2" fill="#cbd5e1"/>
+      <circle cx="23" cy="34" r="3.2" fill="url(#gGreen)"/>
+      <rect x="30" y="31.3" width="15" height="5.4" rx="2.7" fill="#94a3b8"/>
+      <circle cx="23" cy="46" r="3.2" fill="url(#gGreen)"/>
+      <rect x="30" y="43.3" width="15" height="5.4" rx="2.7" fill="#94a3b8"/>
+    </symbol>
+
+    <symbol id="ico-tabla" viewBox="0 0 64 64">
+      <rect x="7" y="11" width="50" height="42" rx="8" fill="url(#gPaper)"
+        stroke="#64748b" stroke-width="1.5"/>
+      <path d="M20 22v31M33 22v31M46 22v31M7 33h50M7 43h50" stroke="#cbd5e1"
+        stroke-width="1.5"/>
+      <path d="M7 19a8 8 0 0 1 8-8h34a8 8 0 0 1 8 8v3H7z" fill="url(#gGreen)"/>
+      <rect x="12" y="14" width="12" height="4" rx="2" fill="#d1fae5" opacity=".9"/>
+      <rect x="27" y="14" width="12" height="4" rx="2" fill="#d1fae5" opacity=".7"/>
+      <rect x="42" y="14" width="10" height="4" rx="2" fill="#d1fae5" opacity=".5"/>
+    </symbol>
+
+    <symbol id="ico-panel" viewBox="0 0 64 64">
+      <rect x="7" y="9" width="50" height="46" rx="9" fill="url(#gPaper)"
+        stroke="#64748b" stroke-width="1.5"/>
+      <rect x="13" y="15" width="24" height="4" rx="2" fill="#cbd5e1"/>
+      <rect x="13" y="28" width="8" height="20" rx="3" fill="url(#gGreen)"/>
+      <rect x="25" y="23" width="8" height="25" rx="3" fill="url(#gBlue)"/>
+      <rect x="37" y="33" width="8" height="15" rx="3" fill="url(#gOrange)"/>
+      <path d="M12 49h40" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M15 22l8-5 8 4 8-9 8 4" fill="none" stroke="#52BE80" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+    </symbol>
+  </svg>
+
   <!-- ============ MENÚ LATERAL ============
        En el celular entra deslizándose (☰); en el computador queda fijo a la
        izquierda y el contenido se corre a su lado. -->
   <aside class="menu-lateral" id="menu-lateral">
     <div class="menu-marca">
-      <div class="ic">📦</div>
+      <div class="ic"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-caja"></use></svg></div>
       <div>
         <b id="menu-empresa">FIFO</b>
         <span id="menu-punto">Control de Vencimientos</span>
@@ -446,10 +602,10 @@
     </div>
     <div class="menu-seccion">Vistas</div>
     <div class="menu-lista">
-      <button class="menu-item on" data-vista="registrar"><span class="ic">📷</span>Registrar</button>
-      <button class="menu-item" data-vista="lista"><span class="ic">📋</span>Lista<span class="cuenta oculto" id="menu-cuenta-lista"></span></button>
-      <button class="menu-item" data-vista="tabla"><span class="ic">📄</span>Tabla</button>
-      <button class="menu-item" data-vista="panel"><span class="ic">📊</span>Panel</button>
+      <button class="menu-item on" data-vista="registrar"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-camara"></use></svg></span><span class="menu-texto">Registrar</span></button>
+      <button class="menu-item" data-vista="lista"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-lista"></use></svg></span><span class="menu-texto">Lista</span><span class="cuenta oculto" id="menu-cuenta-lista"></span></button>
+      <button class="menu-item" data-vista="tabla"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-tabla"></use></svg></span><span class="menu-texto">Tabla</span></button>
+      <button class="menu-item" data-vista="panel"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-panel"></use></svg></span><span class="menu-texto">Panel</span></button>
     </div>
     <div class="menu-pie">
       <div class="menu-seccion" style="margin-top:2px">Aplicación</div>
@@ -464,7 +620,7 @@
 
 <header>
   <button class="btn-menu" id="btn-menu" aria-label="Abrir menú" aria-expanded="false">☰</button>
-  <div class="marca-icono">📦</div>
+  <div class="marca-icono"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-caja"></use></svg></div>
   <div class="titulos">
     <h1 id="titulo-empresa">Control de Vencimientos</h1>
     <div class="sub" id="titulo-punto">Cargando…</div>
@@ -648,11 +804,11 @@
 
 </main>
 
-<nav>
-  <button data-vista="registrar" class="on"><span class="ic">📷</span>Registrar</button>
-  <button data-vista="lista"><span class="ic">📋</span>Lista</button>
-  <button data-vista="tabla"><span class="ic">📄</span>Tabla</button>
-  <button data-vista="panel"><span class="ic">📊</span>Panel</button>
+<nav aria-label="Vistas principales">
+  <button data-vista="registrar" class="on"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-camara"></use></svg></span><span class="dock-label">Registrar</span><span class="dock-punto"></span></button>
+  <button data-vista="lista"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-lista"></use></svg></span><span class="dock-label">Lista</span><span class="dock-punto"></span></button>
+  <button data-vista="tabla"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-tabla"></use></svg></span><span class="dock-label">Tabla</span><span class="dock-punto"></span></button>
+  <button data-vista="panel"><span class="ic dock-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ico-panel"></use></svg></span><span class="dock-label">Panel</span><span class="dock-punto"></span></button>
 </nav>
 
 <!-- ============ OVERLAYS ============ -->
@@ -1334,7 +1490,8 @@ function guardar(){
     $('notas').value = '';
     EST.producto = null;
     ocultarCajas();
-    cargarLista();
+    /* La lista se refresca al entrar a Lista/Tabla/Panel. No se pide aquí:
+       competía con el guardado y hacía sentir lento el registro. */
   }).catch(function(e){
     if (e.message !== 'clave') toast('No se pudo guardar: ' + e.message, 4200);
   }).then(function(){

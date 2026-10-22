@@ -277,6 +277,42 @@ function leerTabla_(nombreHoja) {
   return { encabezados: encabezados, registros: registros };
 }
 
+/* ---------- caché del script (opcional: si no existe, todo sigue igual) ---------- */
+function cacheScript_() {
+  try {
+    if (typeof CacheService === 'undefined' || !CacheService) return null;
+    return CacheService.getScriptCache();
+  } catch (e) {
+    return null;
+  }
+}
+
+function cacheGetJson_(clave) {
+  const c = cacheScript_();
+  if (!c) return null;
+  try {
+    const s = c.get(clave);
+    return s ? JSON.parse(s) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function cachePutJson_(clave, valor, segundos) {
+  const c = cacheScript_();
+  if (!c) return;
+  try {
+    c.put(clave, JSON.stringify(valor), segundos || 300);
+  } catch (e) {
+    /* si la caché está llena o no disponible, se sigue leyendo la hoja */
+  }
+}
+
+/** Clave corta y estable para CacheService (máx. 250 caracteres). */
+function claveCache_(texto) {
+  return huella_(String(texto === null || texto === undefined ? '' : texto)).slice(0, 32);
+}
+
 /** Devuelve el valor de un registro probando todos los alias del campo. */
 function campo_(reg, clave) {
   const alias = CAMPOS[clave] || [clave];
@@ -329,29 +365,143 @@ function leerConfig_() {
   return cfg;
 }
 
+function valorFila_(fila, i) {
+  return i === -1 || fila[i] === null || fila[i] === undefined ? '' : String(fila[i]).trim();
+}
+
 /** Catálogo indexado por item y por código de barras. */
 function leerCatalogo_() {
   const porItem = {};
   const porBarra = {};
   try {
-    const t = leerTabla_(CFG.HOJA_CATALOGO);
-    t.registros.forEach(function (r) {
-      const item = String(campo_(r, 'item')).trim();
-      if (!item) return;
+    const sh = hoja_(CFG.HOJA_CATALOGO);
+    const valores = sh.getDataRange().getValues();
+    if (!valores || valores.length < 2) return { porItem: porItem, porBarra: porBarra };
+
+    /* Se resuelven las columnas UNA vez. Antes se llamaba campo_() por cada
+       fila y cada campo: con 10.000 productos eso pesaba más que la lectura. */
+    const enc = valores[0].map(norm_);
+    const iItem = indiceCol_(enc, 'item');
+    const iDesc = indiceCol_(enc, 'desc_item');
+    const iRef = indiceCol_(enc, 'referencia');
+    const iProv = indiceCol_(enc, 'proveedor');
+    const iBarra = indiceCol_(enc, 'codigo_barra_principal');
+
+    for (let i = 1; i < valores.length; i++) {
+      const fila = valores[i] || [];
+      const item = valorFila_(fila, iItem);
+      if (!item) continue;
       const info = {
         item: item,
-        desc_item: String(campo_(r, 'desc_item')).trim(),
-        referencia: String(campo_(r, 'referencia')).trim(),
-        proveedor: String(campo_(r, 'proveedor')).trim(),
-        codigo_barra_principal: String(campo_(r, 'codigo_barra_principal')).trim()
+        desc_item: valorFila_(fila, iDesc),
+        referencia: valorFila_(fila, iRef),
+        proveedor: valorFila_(fila, iProv),
+        codigo_barra_principal: valorFila_(fila, iBarra)
       };
       porItem[item] = info;
       if (info.codigo_barra_principal) porBarra[info.codigo_barra_principal] = item;
-    });
+    }
   } catch (e) {
     logger_('CATALOGO no disponible: ' + e.message);
   }
   return { porItem: porItem, porBarra: porBarra };
+}
+
+function productoDeFila_(enc, fila) {
+  const item = valorFila_(fila, indiceCol_(enc, 'item'));
+  if (!item) return null;
+  return {
+    item: item,
+    desc_item: valorFila_(fila, indiceCol_(enc, 'desc_item')),
+    referencia: valorFila_(fila, indiceCol_(enc, 'referencia')),
+    proveedor: valorFila_(fila, indiceCol_(enc, 'proveedor')),
+    codigo_barra_principal: valorFila_(fila, indiceCol_(enc, 'codigo_barra_principal'))
+  };
+}
+
+/**
+ * Busca UN producto por una columna exacta usando TextFinder (lo resuelve
+ * Google Sheets sin traer las 10.000 filas a Apps Script).
+ * Devuelve { soportado, producto }. Si el entorno no tiene TextFinder
+ * (por ejemplo las pruebas con hojas falsas), soportado=false para que el
+ * llamador use el catálogo completo.
+ */
+function buscarProductoHoja_(campoClave, valor) {
+  const sh = hoja_(CFG.HOJA_CATALOGO);
+  if (typeof sh.createTextFinder !== 'function') return { soportado: false, producto: null };
+
+  const lastRow = sh.getLastRow();
+  const lastCol = sh.getLastColumn();
+  if (lastRow < 2 || lastCol < 1) return { soportado: true, producto: null };
+
+  const enc = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(norm_);
+  const col = indiceCol_(enc, campoClave);
+  if (col === -1) return { soportado: false, producto: null };
+
+  const encontrado = sh.getRange(2, col + 1, lastRow - 1, 1)
+    .createTextFinder(String(valor)).matchEntireCell(true).findFirst();
+  if (!encontrado) return { soportado: true, producto: null };
+
+  const fila = sh.getRange(encontrado.getRow(), 1, 1, lastCol).getValues()[0];
+  return { soportado: true, producto: productoDeFila_(enc, fila) };
+}
+
+/** ¿El texto parece un código y no una descripción? Evita dos TextFinder por cada búsqueda por nombre. */
+function pareceCodigo_(texto) {
+  const q = String(texto === null || texto === undefined ? '' : texto).trim();
+  if (!q || q.length > 40 || !/^[A-Za-z0-9._-]+$/.test(q)) return false;
+  if (/^\d+$/.test(q)) return q.length >= 6;
+  return /\d/.test(q) || /[-_]/.test(q);
+}
+
+/** Producto exacto por código de barras o por item, con caché por código. */
+function productoPorCampo_(valor, campoClave) {
+  const q = String(valor === null || valor === undefined ? '' : valor).trim();
+  if (!q) return null;
+
+  const clave = 'fifo_cat_' + (campoClave === 'item' ? 'i_' : 'b_') + claveCache_(q);
+  const cacheado = cacheGetJson_(clave);
+  if (cacheado) return cacheado._none ? null : cacheado;
+
+  let resultado = { soportado: false, producto: null };
+  try {
+    resultado = buscarProductoHoja_(campoClave, q);
+  } catch (e) {
+    resultado = { soportado: false, producto: null };
+  }
+
+  let producto = null;
+  if (resultado.soportado) {
+    producto = resultado.producto;
+  } else {
+    const cat = leerCatalogo_();
+    producto = campoClave === 'item'
+      ? (cat.porItem[q] || null)
+      : (cat.porBarra[q] ? (cat.porItem[cat.porBarra[q]] || null) : null);
+  }
+
+  /* 3 min para un acierto y 30 s para un código inexistente: si agregan el
+     producto al CATALOGO, no hay que esperar cinco minutos para escanearlo. */
+  cachePutJson_(clave, producto || { _none: true }, producto ? 180 : 30);
+  return producto;
+}
+
+/**
+ * El listado y el correo solo necesitan el catálogo si alguna fila vieja no
+ * trae descripción/proveedor/referencia/código. Las filas nuevas ya los
+ * guardan completos, así que se evita leer CATALOGO entero.
+ */
+function catalogoParaListado_(registros) {
+  for (let i = 0; i < registros.length; i++) {
+    const r = registros[i];
+    if (!String(campo_(r, 'desc_item')).trim() ||
+        !String(campo_(r, 'proveedor')).trim() ||
+        !String(campo_(r, 'referencia')).trim() ||
+        !String(campo_(r, 'codigo_barra_escaneado')).trim()) {
+      return leerCatalogo_();
+    }
+  }
+  return { porItem: {}, porBarra: {} };
 }
 
 /** Un lote se ignora si está Vendido / Retirado / Devuelto. */
@@ -515,8 +665,8 @@ function evaluarRegistro_(r, catalogo, cfg, hoy, baseUrl, gid) {
 }
 
 function construirReporte_(cfg, tipo) {
-  const catalogo = leerCatalogo_();
   const { registros } = leerTabla_(CFG.HOJA_SEGUIMIENTO);
+  const catalogo = catalogoParaListado_(registros);
   const shSeg = hoja_(CFG.HOJA_SEGUIMIENTO);
   const gid = shSeg.getSheetId();
   const baseUrl = getSs_().getUrl();
@@ -930,7 +1080,7 @@ function huellaTabla_(filas) {
  * Si la tabla tiene fórmulas (por ejemplo un ARRAYFORMULA en L o M) no se toca:
  * reescribir las filas las borraría.
  */
-function ordenarSeguimiento_(motivo) {
+function ordenarSeguimiento_(motivo, cfgDada) {
   const sh = hoja_(CFG.HOJA_SEGUIMIENTO);
   const rango = sh.getDataRange();
   const valores = rango.getValues();
@@ -940,7 +1090,8 @@ function ordenarSeguimiento_(motivo) {
     return 0;
   }
 
-  const cfg = leerConfig_();
+  /* apiGuardar ya leyó CONFIG: reutilizarla evita otra lectura de hoja. */
+  const cfg = cfgDada || leerConfig_();
   const enc = valores[0].map(norm_);
   const idxFecha = indiceCol_(enc, 'fecha_vencimiento');
   if (idxFecha === -1) {
@@ -1514,16 +1665,32 @@ function apiBuscar(clave, texto) {
     const q = String(texto === null || texto === undefined ? '' : texto).trim();
     if (!q) return apiOk_({ tipo: 'nada', producto: null, candidatos: [] });
 
-    const cat = leerCatalogo_();
-    const porBarraItem = cat.porBarra[q];
-    if (porBarraItem && cat.porItem[porBarraItem]) {
-      return apiOk_({ tipo: 'unico', producto: cat.porItem[porBarraItem], candidatos: [] });
+    /* Camino rápido del escáner: código de barras exacto o item exacto.
+       No se trae CATALOGO entero; TextFinder busca en la hoja y el producto
+       queda cacheado por código. Solo se intenta cuando el texto parece un
+       código: así una búsqueda por nombre no paga dos escaneos inútiles. */
+    if (pareceCodigo_(q)) {
+      const porBarra = productoPorCampo_(q, 'codigo_barra_principal');
+      if (porBarra) {
+        return apiOk_({ tipo: 'unico', producto: porBarra, candidatos: [] });
+      }
+      const porItem = productoPorCampo_(q, 'item');
+      if (porItem) {
+        return apiOk_({ tipo: 'unico', producto: porItem, candidatos: [] });
+      }
     }
-    if (cat.porItem[q]) {
-      return apiOk_({ tipo: 'unico', producto: cat.porItem[q], candidatos: [] });
+
+    /* Un código numérico que no existe no necesita recorrer 10.000 nombres. */
+    if (/^\d{8,}$/.test(q)) {
+      return apiOk_({ tipo: 'nada', producto: null, candidatos: [] });
     }
 
     const nq = norm_(q);
+    const claveBusqueda = 'fifo_busq_' + claveCache_(nq);
+    const cacheada = cacheGetJson_(claveBusqueda);
+    if (cacheada) return apiOk_(cacheada);
+
+    const cat = leerCatalogo_();
     const candidatos = Object.keys(cat.porItem)
       .map(function (k) { return cat.porItem[k]; })
       .filter(function (p) {
@@ -1535,11 +1702,13 @@ function apiBuscar(clave, texto) {
       })
       .slice(0, 25);
 
-    return apiOk_({
+    const salida = {
       tipo: candidatos.length === 1 ? 'unico' : (candidatos.length ? 'varios' : 'nada'),
       producto: candidatos.length === 1 ? candidatos[0] : null,
       candidatos: candidatos
-    });
+    };
+    cachePutJson_(claveBusqueda, salida, 120);
+    return apiOk_(salida);
   } catch (e) {
     return apiError_(e.message);
   }
@@ -1556,12 +1725,14 @@ function apiGuardar(clave, datos) {
     datos = datos || {};
 
     const cfg = leerConfig_();
-    const cat = leerCatalogo_();
     const codigo = String(datos.codigo === null || datos.codigo === undefined ? '' : datos.codigo).trim();
     const itemTexto = String(datos.item === null || datos.item === undefined ? '' : datos.item).trim();
 
-    let producto = cat.porItem[itemTexto] || null;
-    if (!producto && codigo && cat.porBarra[codigo]) producto = cat.porItem[cat.porBarra[codigo]] || null;
+    /* El producto ya se buscó al escanear: con la caché por código no hace
+       falta leer las 10.000 filas del catálogo otra vez. */
+    let producto = itemTexto ? productoPorCampo_(itemTexto, 'item') : null;
+    if (!producto && codigo) producto = productoPorCampo_(codigo, 'codigo_barra_principal');
+    if (!producto && codigo && !itemTexto) producto = productoPorCampo_(codigo, 'item');
 
     const itemFinal = producto ? producto.item : itemTexto;
     if (!itemFinal) {
@@ -1575,8 +1746,10 @@ function apiGuardar(clave, datos) {
     if (!fecha) return apiError_('Falta la fecha de vencimiento.');
 
     const sh = hoja_(CFG.HOJA_SEGUIMIENTO);
-    const valores = sh.getDataRange().getValues();
-    const enc = (valores && valores.length) ? valores[0].map(norm_) : [];
+    /* Solo la fila de encabezados: antes se traía la hoja completa solo para
+       leer la primera fila, y luego ordenarSeguimiento_ la volvía a leer. */
+    const lastCol = sh.getLastColumn();
+    const enc = lastCol > 0 ? sh.getRange(1, 1, 1, lastCol).getValues()[0].map(norm_) : [];
     if (!enc.length) return apiError_('La hoja SEGUIMIENTO no tiene encabezados. Ejecuta crearHojasBase().');
 
     const fila = [];
@@ -1612,7 +1785,7 @@ function apiGuardar(clave, datos) {
 
     /* La hoja queda ordenada por días restantes: lo más urgente, arriba. */
     try {
-      ordenarSeguimiento_('nuevo registro');
+      ordenarSeguimiento_('nuevo registro', cfg);
     } catch (eOrden) {
       logger_('El lote se guardó, pero no se pudo ordenar la hoja: ' + eOrden.message);
     }
@@ -1646,9 +1819,9 @@ function apiListar(clave, filtros) {
     filtros = filtros || {};
 
     const cfg = leerConfig_();
-    const cat = leerCatalogo_();
     const sh = hoja_(CFG.HOJA_SEGUIMIENTO);
     const tabla = leerTabla_(CFG.HOJA_SEGUIMIENTO);
+    const cat = catalogoParaListado_(tabla.registros);
     const baseUrl = getSs_().getUrl();
     const gid = sh.getSheetId();
     const hoy = hoy_();
