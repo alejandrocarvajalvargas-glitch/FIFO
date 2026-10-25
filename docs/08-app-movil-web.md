@@ -370,6 +370,22 @@ nada cambió, no escribe. El orden entre lotes del mismo día es el de llegada (
 Si la hoja tiene la fila de encabezado y **fórmulas** en la tabla, el script no ordena: reescribir
 las filas borraría esas fórmulas.
 
+### Por qué la información carga rápido
+La app no vuelve a leer la hoja por cada toque:
+
+- Al entrar, `apiIniciar` (configuración) y `apiListar` (lista) salen **en paralelo**: en frío
+  cada llamada paga su propio arranque y así se espera una, no la suma de las dos.
+- El servidor guarda `CONFIG` **2 minutos** en la caché del script y la respuesta de `apiListar`
+  **60 segundos** por combinación de filtro. Guardar un lote o vender/retirar uno cambia el
+  *token de generación*: la siguiente lista ya lo incluye, nunca se sirve una lista vieja después
+  de una escritura.
+- En el teléfono, la última respuesta de cada filtro se repinta **al instante**; si tiene más de
+  5 segundos, se refresca en segundo plano. **Actualizar** (menú o botón) fuerza la consulta y
+  además salta la caché del servidor.
+- Si alguien edita `SEGUIMIENTO` a mano, la lista puede tardar hasta 60 s en reflejarlo (o un
+  toque en **Actualizar**). Cambiar `CONFIG` (empresa, clave, hitos) puede tardar hasta 2 minutos
+  porque esa hoja también está cacheada.
+
 ### Moverse por la app (menú lateral)
 El botón **☰** de la cabecera abre el menú, que lleva a las cuatro vistas —**Registrar**,
 **Lista**, **Tabla** y **Panel**— y además ofrece **Tema claro/oscuro**, **Actualizar**,

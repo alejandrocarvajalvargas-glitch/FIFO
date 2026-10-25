@@ -121,6 +121,12 @@ function logger_(msg) {
   console.log('[FIFO] ' + msg);
 }
 
+/* El libro y cada hoja se piden una sola vez por ejecución. Antes, una misma
+   llamada a apiListar abría el libro y buscaba la misma hoja varias veces; cada
+   búsqueda es una ida y vuelta al servicio de Sheets. */
+let _libroMemo_ = null;
+const _hojasMemo_ = {};
+
 /**
  * Libro de trabajo.
  * - Si el script está VINCULADO al libro (Extensiones ▸ Apps Script) → libro activo.
@@ -128,18 +134,27 @@ function logger_(msg) {
  * Así el mismo código sirve en las dos formas de instalación.
  */
 function getSs_() {
+  if (_libroMemo_) return _libroMemo_;
   const activo = SpreadsheetApp.getActiveSpreadsheet();
-  if (activo) return activo;
-  if (CFG.LIBRO_ID) return SpreadsheetApp.openById(CFG.LIBRO_ID);
+  if (activo) {
+    _libroMemo_ = activo;
+    return _libroMemo_;
+  }
+  if (CFG.LIBRO_ID) {
+    _libroMemo_ = SpreadsheetApp.openById(CFG.LIBRO_ID);
+    return _libroMemo_;
+  }
   throw new Error('No hay libro activo. Vincula el script al libro (Extensiones ▸ Apps Script) ' +
     'o escribe el ID del libro en CFG.LIBRO_ID.');
 }
 
 function hoja_(nombre) {
+  if (_hojasMemo_[nombre]) return _hojasMemo_[nombre];
   const sh = getSs_().getSheetByName(nombre);
   if (!sh) {
     throw new Error('No existe la hoja "' + nombre + '". Revisa docs/01-modelo-datos.md o ejecuta crearHojasBase().');
   }
+  _hojasMemo_[nombre] = sh;
   return sh;
 }
 
@@ -300,17 +315,53 @@ function cacheGetJson_(clave) {
 
 function cachePutJson_(clave, valor, segundos) {
   const c = cacheScript_();
-  if (!c) return;
+  if (!c) return false;
   try {
-    c.put(clave, JSON.stringify(valor), segundos || 300);
+    const texto = JSON.stringify(valor);
+    /* CacheService admite 100 KB por clave: si la respuesta es mayor se deja
+       fuera (se vuelve a calcular) en vez de fallar en silencio. */
+    if (texto.length > 90000) return false;
+    c.put(clave, texto, segundos || 300);
+    return true;
   } catch (e) {
     /* si la caché está llena o no disponible, se sigue leyendo la hoja */
+    return false;
   }
 }
 
 /** Clave corta y estable para CacheService (máx. 250 caracteres). */
 function claveCache_(texto) {
   return huella_(String(texto === null || texto === undefined ? '' : texto)).slice(0, 32);
+}
+
+/* Generación de la lista. CacheService no permite enumerar claves, así que en
+   vez de borrar cada filtro guardado se cambia este token: las respuestas
+   viejas quedan huérfanas y expiran solas. Lo cambian apiGuardar y apiAccion. */
+const CACHE_GEN_LISTA = 'fifo_gen_lista_v1';
+
+function generacionLista_() {
+  const c = cacheScript_();
+  if (!c) return '0';
+  try {
+    let g = c.get(CACHE_GEN_LISTA);
+    if (!g) {
+      g = String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8);
+      c.put(CACHE_GEN_LISTA, g, 21600);   /* 6 h: el máximo de la caché */
+    }
+    return g;
+  } catch (e) {
+    return '0';
+  }
+}
+
+function invalidarLista_() {
+  const c = cacheScript_();
+  if (!c) return;
+  try {
+    c.put(CACHE_GEN_LISTA, String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8), 21600);
+  } catch (e) {
+    /* sin caché disponible siempre se lee la hoja */
+  }
 }
 
 /** Devuelve el valor de un registro probando todos los alias del campo. */
@@ -335,9 +386,26 @@ function indiceCol_(encabezados, clave) {
   return -1;
 }
 
+/* CONFIG se lee en casi todas las operaciones: la clave de acceso, los hitos y
+   los umbrales viven ahí. Se guarda 2 minutos en la caché del script y una vez
+   por ejecución en memoria. Si no hay CacheService (las pruebas), se lee siempre
+   la hoja y el comportamiento es idéntico. */
+let _cfgMemo_ = null;
+
 /** CONFIG → objeto con defaults aplicados y listas de correo ya resueltas. */
 function leerConfig_() {
+  const cache = cacheScript_();
+  if (cache && _cfgMemo_) return _cfgMemo_;
+  if (cache) {
+    const guardada = cacheGetJson_('fifo_cfg_v1');
+    if (guardada && guardada.empresa_nombre !== undefined) {
+      _cfgMemo_ = guardada;
+      return guardada;
+    }
+  }
+
   const mapa = {};
+  let leidaOk = true;
   try {
     const t = leerTabla_(CFG.HOJA_CONFIG);
     t.registros.forEach(function (r) {
@@ -345,6 +413,7 @@ function leerConfig_() {
       if (k) mapa[k] = campo_(r, 'valor');
     });
   } catch (e) {
+    leidaOk = false;
     logger_('CONFIG no disponible, se usan valores por defecto: ' + e.message);
   }
   const cfg = Object.assign({}, CFG_DEFAULTS);
@@ -362,6 +431,13 @@ function leerConfig_() {
   cfg._to = listaCorreos_(cfg.correos_to);
   cfg._cc = listaCorreos_(cfg.correos_cc);
   cfg._bcc = listaCorreos_(cfg.correos_bcc);
+
+  if (cache) {
+    _cfgMemo_ = cfg;
+    /* Si la hoja falló no se guarda: los defaults (incluida la clave) no deben
+       quedar cacheados y bloquear la app durante dos minutos. */
+    if (leidaOk) cachePutJson_('fifo_cfg_v1', cfg, 120);
+  }
   return cfg;
 }
 
@@ -1129,6 +1205,7 @@ function ordenarSeguimiento_(motivo, cfgDada) {
   withLock_(function () {
     sh.getRange(2, 1, salida.length, ancho).setValues(salida);
   });
+  invalidarLista_();   /* cambió el orden/estado: la lista cacheada ya no sirve */
   logger_('SEGUIMIENTO ordenada por días restantes (' + (motivo || 'app') + '): ' + salida.length + ' filas.');
   return salida.length;
 }
@@ -1782,6 +1859,7 @@ function apiGuardar(clave, datos) {
     poner('usuario_registro', operador);
 
     sh.appendRow(fila);
+    invalidarLista_();   /* la próxima lista se calcula con este registro dentro */
 
     /* La hoja queda ordenada por días restantes: lo más urgente, arriba. */
     try {
@@ -1818,6 +1896,23 @@ function apiListar(clave, filtros) {
     if (!claveValida_(clave)) return { ok: false, requiereClave: true };
     filtros = filtros || {};
 
+    const f = String(filtros.estado || 'todos').toLowerCase();
+    const texto = norm_(filtros.texto || '');
+    const proveedor = String(filtros.proveedor || '');
+    const forzar = filtros.forzar === true || filtros.forzar === 'true';
+
+    /* Respuesta reciente para este mismo filtro. Navegar entre Lista, Tabla y
+       Panel pedía releer SEGUIMIENTO entera cada vez. El token de generación se
+       renueva al guardar o mover un lote, así que nunca se sirve data vieja
+       después de una escritura. «Actualizar» manda forzar=true y salta la caché
+       (por si alguien editó la hoja a mano). */
+    const claveLista = 'fifo_lst_v1_' + generacionLista_() + '_' +
+      claveCache_(f + '|' + texto + '|' + proveedor);
+    if (!forzar) {
+      const enCache = cacheGetJson_(claveLista);
+      if (enCache) return apiOk_(enCache);
+    }
+
     const cfg = leerConfig_();
     const sh = hoja_(CFG.HOJA_SEGUIMIENTO);
     const tabla = leerTabla_(CFG.HOJA_SEGUIMIENTO);
@@ -1852,10 +1947,6 @@ function apiListar(clave, filtros) {
       return String(a.desc).localeCompare(String(b.desc));
     });
 
-    const f = String(filtros.estado || 'todos').toLowerCase();
-    const texto = norm_(filtros.texto || '');
-    const proveedor = String(filtros.proveedor || '');
-
     const lista = todos.filter(function (x) {
       if (f === 'criticos' && x.estado !== ESTADO.VENCIDO && x.estado !== ESTADO.ALERTA && x.estado !== ESTADO.PROXIMO) return false;
       if (f === 'alertas' && x.estado !== ESTADO.ALERTA) return false;
@@ -1881,12 +1972,18 @@ function apiListar(clave, filtros) {
       };
     });
 
-    return apiOk_({
+    const salida = {
       registros: registros,
       total: lista.length,
       kpis: kpis,
       proveedores: Object.keys(conteoProveedor).sort()
-    });
+    };
+    /* 60 s es de sobra para navegar entre pantallas; cualquier escritura
+       (guardar o acción) cambia el token de generación y la deja obsoleta.
+       La respuesta forzada también se guarda: así el refresco manual no deja
+       una copia vieja que reaparezca al siguiente toque. */
+    cachePutJson_(claveLista, salida, 60);
+    return apiOk_(salida);
   } catch (e) {
     return apiError_(e.message);
   }
@@ -1916,6 +2013,7 @@ function apiAccion(clave, id, accion) {
     if (j === -1) return apiError_('La hoja SEGUIMIENTO no tiene la columna estado_gestion.');
 
     sh.getRange(hallado._fila, j + 1).setValue(nuevo);
+    invalidarLista_();
     return apiOk_({ id: buscado, estado_gestion: nuevo });
   } catch (e) {
     return apiError_(e.message);

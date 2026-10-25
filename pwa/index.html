@@ -23,6 +23,10 @@
      blanco ni espera a la fuente para funcionar. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- La API vive en script.google.com: abrir el socket mientras se pinta la
+     interfaz ahorra el saludo TLS de la primera llamada. -->
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://script.googleusercontent.com">
 <link rel="stylesheet" media="print" onload="this.media='all'"
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
 <style>
@@ -883,6 +887,7 @@ var EST = {
   ancho: 0,
   tema: 'claro',          /* claro · oscuro (se elige en el menú y se recuerda) */
   ultimaLista: null,      /* último apiListar, para repintar al cambiar de tema */
+  cacheListas: {},        /* respuestas de apiListar por filtro: pintar al instante */
   ultimoResultado: null
 };
 
@@ -1245,7 +1250,7 @@ function esInstalada(){
 }
 
 /** El servidor contestó: o entra, o pide la clave. */
-function sesionIniciada(r){
+function sesionIniciada(r, listaEnCamino){
   EST.intentoFabrica = false;
   if (r && r.requiereClave){
     $('overlay-clave').classList.remove('oculto');
@@ -1260,7 +1265,9 @@ function sesionIniciada(r){
   $('overlay-clave').classList.add('oculto');
   $('error-clave').textContent = '';
   fechaPorDefecto();
-  cargarLista();
+  /* La lista se pidió a la vez que la configuración (ver arrancarSesion). Si no
+     venía en camino —primer ingreso o reintento contra otra dirección— se pide aquí. */
+  if (!listaEnCamino) cargarLista();
   /* Deja ZXing descargado mientras el usuario trabaja: cuando abra la cámara,
      el lector ya está listo y no espera a internet. */
   precalentarEscaner();
@@ -1292,7 +1299,14 @@ function falloDeConexion(e, nota){
  * un despliegue viejo se arregla solo, sin que nadie toque nada.
  */
 function arrancarSesion(){
-  return servidor('apiIniciar', EST.clave).then(sesionIniciada).catch(function(e){
+  /* La lista no depende de CONFIG: se pide al mismo tiempo que el arranque.
+     Cada llamada paga su propio tiempo de inicio en frío; en paralelo el
+     usuario espera una, no la suma de las dos. */
+  EST.cacheListas = {};
+  var listaEnCamino = EST.clave ? cargarLista() : null;
+  return servidor('apiIniciar', EST.clave).then(function(r){
+    return sesionIniciada(r, listaEnCamino);
+  }).catch(function(e){
     if (e.message === 'clave') return;
     var guardada = apiUrlGuardada();
     if (guardada && guardada !== API_POR_DEFECTO && !EST.intentoFabrica){
@@ -1490,6 +1504,8 @@ function guardar(){
     $('notas').value = '';
     EST.producto = null;
     ocultarCajas();
+    /* Lo guardado todavía no está en ninguna lista cacheada. */
+    EST.cacheListas = {};
     /* La lista se refresca al entrar a Lista/Tabla/Panel. No se pide aquí:
        competía con el guardado y hacía sentir lento el registro. */
   }).catch(function(e){
@@ -1522,30 +1538,52 @@ function pintarResultado(r){
 
 /* =================== lista =================== */
 
-function cargarLista(){
+/** Clave de la caché local: una por combinación de filtro, búsqueda y proveedor. */
+function claveListaActual(){
+  return EST.filtro + '|' + EST.texto + '|' + EST.proveedor;
+}
+
+/** Pinta una respuesta de apiListar en las tres vistas que la comparten. */
+function pintarLista(r){
+  EST.ultimaLista = r;
+  pintarKPIs(r.kpis);
+  pintarProveedores(r.proveedores || []);
+  pintarRegistros(r);
+  pintarTabla(r);
+  pintarCuentaMenu(r.kpis);
+}
+
+function cargarLista(forzar){
   var mio = ++secuenciaLista;
+  var clave = claveListaActual();
+  var guardada = EST.cacheListas[clave];
+
+  /* Si este mismo filtro ya se pintó, se muestra al instante y solo se pide al
+     servidor si el dato tiene más de 5 s (o si el usuario pidió refrescar).
+     Así moverse entre Lista, Tabla y Panel deja de costar una lectura completa. */
+  if (guardada){
+    pintarLista(guardada.r);
+    if (!forzar && (Date.now() - guardada.t) < 5000) return Promise.resolve(guardada.r);
+  }
+
   var caja = $('lista-registros');
   /* El servidor tarda uno o dos segundos (en frío, más). Si todavía no hay nada
      pintado se avisa, para que nadie crea que la app está vacía o rota. */
-  if (!caja.querySelector('.reg')){
+  if (!guardada && !caja.querySelector('.reg')){
     $('resumen-lista').textContent = 'Cargando…';
     caja.innerHTML = '<div class="vacio"><span class="girando girando-azul"></span><br>Cargando datos…</div>';
   }
-  if (!$('tabla-cuerpo').querySelector('td.mono')){
+  if (!guardada && !$('tabla-cuerpo').querySelector('td.mono')){
     $('resumen-tabla').textContent = 'Cargando…';
     $('tabla-cuerpo').innerHTML = '<tr><td colspan="7" class="vacio"><span class="girando girando-azul"></span><br>Cargando datos…</td></tr>';
   }
-  return servidor('apiListar', EST.clave, { estado: EST.filtro, texto: EST.texto, proveedor: EST.proveedor })
+  return servidor('apiListar', EST.clave, { estado: EST.filtro, texto: EST.texto, proveedor: EST.proveedor, forzar: !!forzar })
     .then(function(r){
       revisar(r);
       EST.sinConexion = false;
       if (mio !== secuenciaLista) return;       /* llegó tarde: ya se pidió una lista más nueva */
-      EST.ultimaLista = r;
-      pintarKPIs(r.kpis);
-      pintarProveedores(r.proveedores || []);
-      pintarRegistros(r);
-      pintarTabla(r);
-      pintarCuentaMenu(r.kpis);
+      EST.cacheListas[clave] = { r: r, t: Date.now() };
+      pintarLista(r);
     }).catch(function(e){
       if (mio !== secuenciaLista) return;
       var faltaClave = (e.message === 'clave');
@@ -1690,7 +1728,8 @@ function accion(id, cual){
   servidor('apiAccion', EST.clave, id, cual).then(function(r){
     revisar(r);
     toast('Actualizado: ' + r.estado_gestion);
-    cargarLista();
+    EST.cacheListas = {};      /* el lote cambió de estado: no sirve lo pintado */
+    cargarLista(true);
   }).catch(function(e){ if (e.message !== 'clave') toast('No se pudo actualizar: ' + e.message, 3600); });
 }
 
@@ -2129,7 +2168,7 @@ document.addEventListener('DOMContentLoaded', function(){
   $('btn-menu').onclick = alternarMenu;
   $('fondo-menu').onclick = cerrarMenu;
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cerrarMenu(); });
-  $('menu-refrescar').onclick = function(){ cerrarMenu(); cargarLista(); toast('Datos actualizados'); };
+  $('menu-refrescar').onclick = function(){ cerrarMenu(); cargarLista(true); toast('Datos actualizados'); };
   $('menu-tema').onclick = function(){ cerrarMenu(); alternarTema(); };
   $('menu-instalar').onclick = function(){
     cerrarMenu();
@@ -2224,7 +2263,7 @@ document.addEventListener('DOMContentLoaded', function(){
     cargarLista();
   });
 
-  $('btn-refrescar').onclick = function(){ cargarLista(); toast('Datos actualizados'); };
+  $('btn-refrescar').onclick = function(){ cargarLista(true); toast('Datos actualizados'); };
 
   $('btn-instalar').onclick = function(){
     if (!EST.instalable){ toast('Usa el menú del navegador ▸ Añadir a pantalla de inicio'); return; }
