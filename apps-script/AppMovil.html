@@ -34,36 +34,56 @@
      FIFO · Hoja de estilo única (sirve a la app instalable y a la que
      corre dentro de Apps Script).
 
-     Identidad corporativa: verde #1B4D3E con acento #52BE80 y tipografía
-     Plus Jakarta Sans, igual que el dashboard de referencia.
+     Piel CLAY 3D tomada del tablero de referencia: superficies con
+     volumen (luz arriba, sombra abajo), campos "hundidos", botones
+     esmeralda con brillo especular y píldoras de arcilla. La identidad
+     sigue siendo VERDE corporativo (#1B4D3E / #52BE80): el menú, el
+     dock, la cabecera de la tabla y los botones primarios viven en la
+     paleta de la marca.
 
      Regla de oro: los colores de ESTADO del semáforo (vencido, alerta,
      próximo, vigilancia, en regla) NO son decoración, son información.
-     Se mantienen (en su versión clara, para que se lean sobre oscuro) y
-     nunca se confunden con el verde de marca.
+     Se mantienen (brillantes sobre oscuro, tonos de papel sobre claro)
+     y nunca se confunden con el verde de marca.
      ===================================================================== */
   :root{
     /* ---------- marca ---------- */
     --marca:#1B4D3E; --marca-claro:#256350; --marca-osc:#113329;
-    --marca-borde:#275d4c; --marca-tenue:rgba(82,190,128,.12);
-    --acento:#52BE80; --acento-texto:#a7f3d0; --acento-borde:rgba(82,190,128,.30);
+    --marca-borde:rgba(255,255,255,.09); --marca-tenue:rgba(16,185,129,.16);
+    --acento:#52BE80; --acento-texto:#cbd5e1; --acento-borde:rgba(16,185,129,.40);
 
-    /* ---------- lienzo y superficies ---------- */
-    --fondo:#0d1a15; --fondo-2:#11221c;
-    --superficie:#132A22; --superficie-2:#19362c; --superficie-3:#1d3d32;
-    --linea:#235042; --linea-fuerte:#2f6352; --hundido:#0f211b;
+    /* ---------- lienzo y superficies (clay oscuro) ---------- */
+    --fondo:#0f172a; --fondo-2:#111b2d;
+    --superficie:#1e293b; --superficie-2:#24334e; --superficie-3:#1b2942;
+    --linea:rgba(148,163,184,.14); --linea-fuerte:rgba(148,163,184,.22);
+    --hundido:#0b1220;
     --texto:#f1f5f9; --gris:#94a3b8;
 
-    /* ---------- marco: cabecera, menú y barra inferior ----------
-       En el tema claro el contenido se vuelve blanco, pero el marco sigue
-       siendo el verde corporativo: la marca enmarca, el dato respira. */
-    --marco-fondo:rgba(19,42,34,.93); --marco-fondo-2:rgba(19,42,34,.96);
-    --marco-menu:linear-gradient(180deg,#162e26,#0f211b);
+    /* ---------- piezas clay: tarjeta, campo hundido, botón, sombra ---------- */
+    --clay-tarjeta:linear-gradient(145deg,#1e293b 0%,#0f172a 100%);
+    --clay-borde:rgba(255,255,255,.08);
+    --clay-campo:linear-gradient(145deg,#0b111e 0%,#162032 100%);
+    --clay-campo-sombra:inset 4px 4px 8px rgba(2,6,23,.85), inset -3px -3px 6px rgba(51,65,85,.30);
+    --clay-boton:linear-gradient(145deg,#1e293b 0%,#111827 100%);
+    --clay-boton-sombra:4px 4px 10px rgba(2,6,23,.75), -3px -3px 8px rgba(51,65,85,.30),
+      inset 0 1px 1px rgba(255,255,255,.10);
+    --clay-mini-sombra:3px 3px 6px rgba(2,6,23,.80), -2px -2px 5px rgba(51,65,85,.32);
+    --clay-presion:inset 3px 3px 6px rgba(2,6,23,.75), inset -1px -1px 3px rgba(51,65,85,.22);
+    --esmeralda:linear-gradient(180deg,#34d399 0%,#10b981 50%,#059669 100%);
+    --esmeralda-sombra:0 10px 20px -4px rgba(16,185,129,.30), 5px 5px 12px rgba(2,6,23,.75),
+      -4px -4px 10px rgba(51,65,85,.30), inset 0 2px 3px rgba(255,255,255,.65),
+      inset 0 -3px 6px rgba(0,0,0,.25);
+
+    /* ---------- marco: menú lateral, dock inferior y escáner ----------
+       El marco es SIEMPRE el verde profundo de la marca: enmarca y el
+       contenido respira (sea claro u oscuro). */
+    --marco-fondo:rgba(15,23,42,.72);
+    --marco-menu:linear-gradient(170deg,#0a3a27 0%,#042418 100%);
     --marco-texto:#f1f5f9; --marco-suave:#a7f3d0; --marco-gris:#94a3b8;
-    --marco-acento:#52BE80;
-    --marco-linea:#275d4c; --marco-linea-2:#2f6352;
-    --marco-superficie:#1d3d32; --marco-superficie-2:#19362c;
-    --marco-tenue:rgba(82,190,128,.12); --marco-borde:rgba(82,190,128,.30);
+    --marco-acento:#34d399;
+    --marco-linea:rgba(16,185,129,.25); --marco-linea-2:rgba(16,185,129,.30);
+    --marco-superficie:rgba(255,255,255,.06); --marco-superficie-2:rgba(2,44,34,.55);
+    --marco-tenue:rgba(16,185,129,.14); --marco-borde:rgba(16,185,129,.35);
 
     /* ---------- estados del semáforo (versión para fondo oscuro) ---------- */
     --rojo:#f87171; --rojo-f:rgba(248,113,113,.13);
@@ -74,35 +94,51 @@
     --cielo:#38bdf8; --cielo-f:rgba(56,189,248,.13);
 
     /* ---------- piezas que cambian con el tema ---------- */
+    --titulo:#34d399;
     --sobre-acento:#08281c; --rojo-texto:#fca5a5; --naranja-texto:#fdba74;
-    --aviso-texto:#fde68a; --placeholder:#5f7a88;
-    --barra-fondo:rgba(0,0,0,.35); --velo:rgba(5,13,10,.8);
-    --kpi-fondo:linear-gradient(180deg,var(--superficie),#101f1a);
-    --fila-par:rgba(82,190,128,.045); --fila-hover:rgba(82,190,128,.10);
-    --fondo-degradados:
-      radial-gradient(at 0% 0%, rgba(27,77,62,.42) 0px, transparent 52%),
-      radial-gradient(at 100% 100%, rgba(17,51,41,.55) 0px, transparent 55%);
+    --aviso-texto:#fde68a; --placeholder:#64748b;
+    --barra-fondo:#0d1626; --velo:rgba(2,6,23,.66);
+    --kpi-fondo:var(--clay-tarjeta);
+    --fila-par:rgba(255,255,255,.030); --fila-hover:rgba(16,185,129,.09);
+    --fondo-degradados:radial-gradient(circle at 60% 20%, #1e293b 0%, #0f172a 100%);
 
-    --sombra:0 12px 28px -16px rgba(0,0,0,.75);
-    --radio:16px;
+    --sombra:8px 8px 20px rgba(2,6,23,.55), -6px -6px 16px rgba(51,65,85,.35),
+      inset 1px 1px 1px rgba(255,255,255,.10);
+    --radio:22px;
   }
 
   /* =====================================================================
      TEMA CLARO
-     Mismo semáforo, mismos significados. Solo cambia el lienzo: las
-     tarjetas, la lista, la tabla y los campos pasan a blanco y el
-     semáforo usa sus tonos de papel (los mismos de la hoja y del correo),
-     que sobre blanco es donde mejor se leen.
+     Mismo semáforo, mismos significados. El lienzo pasa a la arcilla
+     clara (azul humo) y las tarjetas a blanco con volumen; el marco
+     sigue siendo el verde corporativo y el semáforo usa sus tonos de
+     papel (los mismos de la hoja y del correo).
      ===================================================================== */
   html[data-tema="claro"]{
     --marca:#1B4D3E; --marca-claro:#256350; --marca-osc:#113329;
-    --marca-borde:#d6e5df; --marca-tenue:rgba(27,77,62,.07);
-    --acento:#157A52; --acento-texto:#14513F; --acento-borde:rgba(27,77,62,.18);
+    --marca-borde:rgba(15,23,42,.08); --marca-tenue:rgba(16,185,129,.20);
+    --acento:#157A52; --acento-texto:#334155; --acento-borde:rgba(16,185,129,.45);
 
-    --fondo:#EEF4F1; --fondo-2:#E4EDE9;
-    --superficie:#ffffff; --superficie-2:#F7FBF9; --superficie-3:#EAF3EE;
-    --linea:#E3EDE8; --linea-fuerte:#CBDDD5; --hundido:#F5F9F7;
-    --texto:#12241D; --gris:#5E7268;
+    --fondo:#d8e2ee; --fondo-2:#e6edf5;
+    --superficie:#ffffff; --superficie-2:#f4f8fc; --superficie-3:#e9f0f7;
+    --linea:rgba(15,23,42,.08); --linea-fuerte:rgba(15,23,42,.14);
+    --hundido:#eef3f9;
+    --texto:#0f172a; --gris:#64748b;
+
+    --clay-tarjeta:linear-gradient(145deg,#ffffff 0%,#ebf1f8 100%);
+    --clay-borde:rgba(255,255,255,.85);
+    --clay-campo:linear-gradient(145deg,#dce6f2 0%,#f4f8fc 100%);
+    --clay-campo-sombra:inset 4px 4px 8px #b2c2d5, inset -4px -4px 8px #ffffff;
+    --clay-boton:linear-gradient(145deg,#ffffff 0%,#e2eaf3 100%);
+    --clay-boton-sombra:5px 5px 12px #b1c1d4, -5px -5px 10px #ffffff,
+      inset 0 1px 2px rgba(255,255,255,1);
+    --clay-mini-sombra:3px 3px 6px #b1c1d4, -3px -3px 6px #ffffff;
+    --clay-presion:inset 3px 3px 6px rgba(15,23,42,.18), inset -2px -2px 4px #ffffff;
+    --esmeralda-sombra:0 10px 20px -4px rgba(16,185,129,.40), 6px 6px 14px #b0c0d3,
+      -5px -5px 12px #ffffff, inset 0 2px 3px rgba(255,255,255,.80),
+      inset 0 -3px 6px rgba(0,0,0,.20);
+
+    /* El marco (menú, dock, escáner) sigue verde en los dos temas. */
 
     --rojo:#B91C1C; --rojo-f:rgba(185,28,28,.08);
     --alerta:#BE123C;
@@ -111,16 +147,16 @@
     --verde:#15803D; --verde-f:rgba(21,128,61,.08);
     --cielo:#0369A1; --cielo-f:rgba(3,105,161,.08);
 
+    --titulo:#047857;
     --sobre-acento:#ffffff; --rojo-texto:#991B1B; --naranja-texto:#9A3412;
-    --aviso-texto:#7C4A03; --placeholder:#8CA096;
-    --barra-fondo:rgba(27,77,62,.10); --velo:rgba(11,31,24,.45);
-    --kpi-fondo:linear-gradient(180deg,#ffffff,#F5FAF7);
-    --fila-par:rgba(27,77,62,.035); --fila-hover:rgba(27,77,62,.07);
-    --fondo-degradados:
-      radial-gradient(at 0% 0%, rgba(82,190,128,.18) 0px, transparent 52%),
-      radial-gradient(at 100% 100%, rgba(27,77,62,.10) 0px, transparent 55%);
+    --aviso-texto:#7C4A03; --placeholder:#8ba0b5;
+    --barra-fondo:#d5dfe9; --velo:rgba(15,23,42,.45);
+    --kpi-fondo:var(--clay-tarjeta);
+    --fila-par:rgba(15,23,42,.03); --fila-hover:rgba(16,185,129,.10);
+    --fondo-degradados:radial-gradient(circle at 60% 20%, #eef4fc 0%, #d8e2ee 100%);
 
-    --sombra:0 10px 26px -20px rgba(9,32,24,.45);
+    --sombra:12px 12px 24px #b1c1d4, -10px -10px 20px #ffffff,
+      inset 1px 1px 2px rgba(255,255,255,.90);
   }
 
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -131,6 +167,7 @@
     color:var(--texto); font-size:16px; line-height:1.45; background-color:var(--fondo);
     background-image:var(--fondo-degradados);
     background-attachment:fixed; overscroll-behavior-y:contain; min-height:100vh;
+    transition:background-color .3s ease, color .3s ease;
   }
   .oculto{display:none !important}
   .sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
@@ -139,10 +176,10 @@
   .dock-icon{
     position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
     border-radius:14px;
-    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.10);
+    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.12);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.18), inset 0 -6px 12px rgba(0,0,0,.18),
-      0 8px 16px -12px rgba(0,0,0,.9);
+      0 8px 16px -12px rgba(0,0,0,.85);
     transition:transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s,
       background .22s, border-color .22s;
     transform-style:preserve-3d;will-change:transform
@@ -157,76 +194,95 @@
   }
 
   ::-webkit-scrollbar{width:9px;height:9px}
-  ::-webkit-scrollbar-track{background:var(--fondo-2)}
-  ::-webkit-scrollbar-thumb{background:var(--marca);border-radius:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(16,185,129,.45);border-radius:8px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(16,185,129,.70)}
   ::selection{background:var(--acento);color:var(--sobre-acento)}
 
-  /* ---------- cabecera ---------- */
+  /* ---------- cabecera (vidrio: blanca en claro, nocturna en oscuro) ---------- */
   header{
-    background:var(--marco-fondo); backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--marco-linea);
-    padding:calc(9px + env(safe-area-inset-top)) 12px 9px;
+    background:var(--marco-fondo); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+    padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
     position:sticky; top:0; z-index:30;
     display:flex; align-items:center; gap:10px;
   }
+  html[data-tema="claro"] header{
+    background:rgba(255,255,255,.78); border-bottom:1px solid rgba(15,23,42,.07)
+  }
   header .marca-icono{
-    width:40px;height:40px;flex:0 0 auto;border-radius:13px;
-    background:linear-gradient(135deg,#276e58,#113329); border:1px solid #3b8c73;
+    width:40px;height:40px;flex:0 0 auto;border-radius:14px;
+    background:radial-gradient(circle at 30% 30%, #34d399 0%, #059669 70%, #022c22 100%);
+    border:1px solid rgba(255,255,255,.40);
+    box-shadow:0 10px 18px rgba(0,0,0,.28), inset 0 2px 4px rgba(255,255,255,.70),
+      inset -2px -4px 6px rgba(0,0,0,.40);
     display:flex;align-items:center;justify-content:center
   }
   header .marca-icono svg{width:25px;height:25px;display:block}
   header .titulos{min-width:0;flex:1}
-  header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.1px;color:var(--marco-texto);
+  header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.1px;color:var(--texto);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  header .sub{font-size:11.5px;color:var(--marco-suave);opacity:.72;margin-top:1px;
+  header .sub{font-size:11.5px;color:var(--gris);margin-top:1px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   header .punto{
     flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
-    background:var(--marco-tenue);color:var(--marco-suave);border:1px solid var(--marco-borde)
+    background:var(--clay-boton);color:var(--texto);border:1px solid var(--clay-borde);
+    box-shadow:var(--clay-mini-sombra)
   }
   .btn-menu{
-    flex:0 0 auto;font-size:17px;line-height:1;padding:11px 12px;border-radius:12px;
-    background:var(--marco-superficie);color:var(--marco-suave);border:1px solid var(--marco-linea-2)
+    flex:0 0 auto;font-size:17px;line-height:1;padding:10px 12px;border-radius:12px;
+    background:var(--clay-boton);color:var(--texto);border:1px solid var(--clay-borde);
+    box-shadow:var(--clay-mini-sombra)
   }
-  .btn-menu:active{background:var(--marca-claro)}
+  .btn-menu:active{box-shadow:var(--clay-presion)}
 
-  /* ---------- menú lateral ---------- */
+  /* ---------- menú lateral (verde de marca con píldoras de arcilla) ---------- */
   .menu-lateral{
     position:fixed;top:0;bottom:0;left:0;width:274px;z-index:45;
     background:var(--marco-menu);
     border-right:1px solid var(--marco-linea);
     display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 12px 14px;
     transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);
-    box-shadow:0 0 40px rgba(0,0,0,.6);overflow-y:auto
+    box-shadow:10px 0 25px rgba(0,0,0,.25);overflow-y:auto
   }
   .menu-lateral.abierto{transform:none}
   .menu-marca{display:flex;align-items:center;gap:11px;padding:4px 6px 14px;
     border-bottom:1px solid var(--marco-linea);margin-bottom:12px}
   .menu-marca .ic{
     width:44px;height:44px;border-radius:14px;flex:0 0 auto;
-    background:linear-gradient(135deg,#276e58,#113329);border:1px solid #3b8c73;
+    background:radial-gradient(circle at 30% 30%, #34d399 0%, #059669 70%, #022c22 100%);
+    border:1px solid rgba(255,255,255,.40);
+    box-shadow:0 10px 18px rgba(0,0,0,.30), inset 0 2px 4px rgba(255,255,255,.70),
+      inset -2px -4px 6px rgba(0,0,0,.40);
     display:flex;align-items:center;justify-content:center
   }
   .menu-marca .ic svg{width:30px;height:30px;display:block}
   .menu-marca b{display:block;font-size:15px;font-weight:800;letter-spacing:.2px;color:var(--marco-texto)}
   .menu-marca span{font-size:11px;color:var(--marco-suave);opacity:.72}
-  .menu-lista{display:flex;flex-direction:column;gap:4px}
+  .menu-lista{display:flex;flex-direction:column;gap:5px}
   .menu-item{
     display:flex;align-items:center;gap:10px;width:100%;text-align:left;
-    background:none;color:var(--marco-suave);border:none;border-left:3px solid transparent;
-    border-radius:12px;padding:9px 10px;font-size:14.5px;font-weight:700
+    background:none;color:var(--marco-suave);border:1px solid transparent;
+    border-left:3px solid transparent;
+    border-radius:14px;padding:9px 10px;font-size:14.5px;font-weight:700;
+    transition:background .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease
   }
   .menu-item .dock-icon{width:38px;height:38px;border-radius:11px}
   .menu-item .dock-icon svg{width:25px;height:25px}
   .menu-item .menu-texto{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .menu-item .cuenta{margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;
     background:var(--marco-tenue);border:1px solid var(--marco-borde);color:var(--marco-suave)}
-  .menu-item:hover,.menu-item.on{background:var(--marco-superficie);color:var(--marco-texto);border-left-color:var(--marco-acento)}
-  .menu-item.on{font-weight:800}
+  .menu-item:hover{background:rgba(255,255,255,.06);color:var(--marco-texto);transform:translateX(3px)}
+  .menu-item.on{
+    background:linear-gradient(135deg,#10b981 0%,#047857 100%);color:#fff;font-weight:800;
+    border-color:rgba(255,255,255,.30);
+    box-shadow:0 8px 16px -4px rgba(16,185,129,.35), inset 0 2px 3px rgba(255,255,255,.45),
+      inset 0 -2px 4px rgba(0,0,0,.30)
+  }
   .menu-item.on .dock-icon{
-    background:linear-gradient(180deg,rgba(82,190,128,.36),rgba(82,190,128,.12));
-    border-color:rgba(82,190,128,.55);
-    box-shadow:0 8px 18px -10px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.45)
+    background:rgba(255,255,255,.22);
+    border-color:rgba(255,255,255,.35);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35)
   }
   .menu-seccion{margin:16px 6px 7px;font-size:10.5px;font-weight:800;letter-spacing:1.1px;
     text-transform:uppercase;color:var(--marco-gris)}
@@ -234,31 +290,38 @@
   .menu-pie button{
     width:100%;display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:7px;
     background:var(--marco-superficie-2);color:var(--marco-suave);border:1px solid var(--marco-linea-2);
-    border-radius:12px;padding:11px 12px;font-size:13px;font-weight:700
+    border-radius:12px;padding:11px 12px;font-size:13px;font-weight:700;
+    transition:background .18s ease, transform .15s ease
   }
+  .menu-pie button:hover{background:rgba(6,78,59,.60)}
+  .menu-pie button:active{transform:translateY(1px)}
   .menu-info{font-size:10.5px;color:var(--marco-gris);line-height:1.5;margin-top:8px;padding:0 4px;
     word-break:break-word;white-space:pre-line}
-  .fondo-menu{position:fixed;inset:0;background:rgba(6,16,12,.62);z-index:40;
-    backdrop-filter:blur(2px)}
+  .fondo-menu{position:fixed;inset:0;background:rgba(2,6,23,.55);z-index:40;
+    backdrop-filter:blur(3px)}
 
   /* ---------- estructura ---------- */
   main{padding:12px 12px calc(118px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto;width:100%}
   .tarjeta{
-    background:var(--superficie);border:1px solid var(--marca-borde);border-radius:var(--radio);
-    padding:15px;margin-bottom:12px;box-shadow:var(--sombra)
+    background:var(--clay-tarjeta);border:1px solid var(--clay-borde);border-radius:var(--radio);
+    padding:16px;margin-bottom:12px;box-shadow:var(--sombra)
   }
   .tarjeta h2{margin:0 0 11px;font-size:11.5px;font-weight:800;text-transform:uppercase;
-    letter-spacing:1px;color:var(--acento-texto);opacity:.75}
-  label{display:block;font-size:12.5px;font-weight:700;color:var(--acento-texto);margin:13px 0 5px}
+    letter-spacing:1px;color:var(--titulo)}
+  label{display:block;font-size:12.5px;font-weight:700;color:var(--acento-texto);
+    letter-spacing:.2px;margin:13px 0 5px}
   label:first-child{margin-top:0}
+  /* Campos hundidos: la arcilla se mete hacia adentro (inset). */
   input,select,textarea{
-    width:100%;padding:12px;font-size:16px;font-family:inherit;color:var(--texto);
-    border:1.5px solid var(--linea-fuerte);border-radius:11px;background:var(--hundido)
+    width:100%;padding:12px 14px;font-size:16px;font-family:inherit;color:var(--texto);
+    border:1px solid var(--clay-borde);border-radius:16px;background:var(--clay-campo);
+    box-shadow:var(--clay-campo-sombra);
+    transition:box-shadow .2s ease, border-color .2s ease
   }
   input::placeholder,textarea::placeholder{color:var(--placeholder)}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acento);
-    box-shadow:0 0 0 3px var(--marca-tenue)}
-  select option{background:var(--hundido);color:var(--texto)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(16,185,129,.55);
+    box-shadow:var(--clay-campo-sombra),0 0 0 3px var(--marca-tenue)}
+  select option{background:var(--superficie);color:var(--texto)}
   textarea{resize:vertical;min-height:60px}
   .fila{display:flex;gap:8px}
   .fila > *{flex:1}
@@ -276,65 +339,95 @@
   details[open] > summary .flecha{transform:rotate(180deg)}
   .cuerpo-api{margin-top:12px}
 
-  /* ---------- botones ---------- */
-  button{font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:12px;
-    padding:12px 14px;cursor:pointer;transition:transform .12s,filter .12s,background .15s}
-  button:active{transform:scale(.985)}
+  /* ---------- botones (arcilla esmeralda con brillo especular) ---------- */
+  button{font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:14px;
+    padding:12px 14px;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, filter .15s ease}
+  button:active{transform:translateY(1px) scale(.99)}
   .btn-azul,.btn-marca{
-    background:linear-gradient(135deg,#1B4D3E,#256350);color:#fff;
-    border:1px solid var(--acento-borde);box-shadow:0 8px 20px -12px rgba(0,0,0,.9)
+    position:relative;overflow:hidden;
+    background:var(--esmeralda);color:#fff;
+    border:1px solid rgba(255,255,255,.35);box-shadow:var(--esmeralda-sombra)
   }
-  .btn-azul:active,.btn-marca:active{filter:brightness(1.12)}
-  .btn-gris{background:var(--superficie-3);color:var(--acento-texto);border:1px solid var(--linea-fuerte)}
-  .btn-gris:hover{background:var(--marca-claro);color:#fff}
-  .btn-rojo{background:var(--rojo-f);color:var(--rojo-texto);border:1px solid rgba(248,113,113,.4)}
-  .btn-naranja{background:var(--naranja-f);color:var(--naranja-texto);border:1px solid rgba(251,146,60,.4)}
-  .btn-verde{background:var(--verde-f);color:var(--acento);border:1px solid rgba(52,211,153,.4)}
+  .btn-azul::before,.btn-marca::before,.btn-scan::before{
+    content:"";position:absolute;top:2px;left:10%;right:10%;height:38%;
+    background:linear-gradient(180deg,rgba(255,255,255,.38) 0%,rgba(255,255,255,0) 100%);
+    border-radius:20px 20px 80px 80px;pointer-events:none
+  }
+  .btn-azul:hover,.btn-marca:hover{filter:brightness(1.05);transform:translateY(-1px)}
+  .btn-azul:active,.btn-marca:active{
+    box-shadow:var(--clay-presion), inset 0 2px 3px rgba(255,255,255,.50);
+    transform:translateY(1px) scale(.99)
+  }
+  .btn-gris{background:var(--clay-boton);color:var(--texto);
+    border:1px solid var(--clay-borde);box-shadow:var(--clay-boton-sombra)}
+  .btn-gris:hover{filter:brightness(1.04);transform:translateY(-1px)}
+  .btn-gris:active{box-shadow:var(--clay-presion);transform:translateY(1px) scale(.99)}
+  .btn-rojo{background:var(--rojo-f);color:var(--rojo-texto);border:1px solid var(--rojo);
+    box-shadow:var(--clay-mini-sombra)}
+  .btn-naranja{background:var(--naranja-f);color:var(--naranja-texto);border:1px solid var(--naranja);
+    box-shadow:var(--clay-mini-sombra)}
+  .btn-verde{background:var(--verde-f);color:var(--verde);border:1px solid var(--verde);
+    box-shadow:var(--clay-mini-sombra)}
   .btn-ancho{width:100%;display:block}
   .btn-grande{font-size:17px;padding:16px}
   button[disabled]{opacity:.5}
+  /* Botón del escáner: esmeralda profundo, el más alto de la vista. */
   .btn-scan{
-    background:linear-gradient(135deg,#276e58,#113329);color:#fff;font-size:18px;padding:18px;
+    position:relative;overflow:hidden;
+    background:linear-gradient(180deg,#064e3b 0%,#042418 100%);color:#fff;font-size:18px;padding:18px;
     display:flex;align-items:center;justify-content:center;gap:10px;
-    border:1px solid var(--acento-borde);box-shadow:0 14px 30px -18px rgba(0,0,0,.95)
+    border:1px solid rgba(16,185,129,.30);border-radius:20px;
+    box-shadow:0 12px 24px -6px rgba(4,36,24,.55), var(--clay-mini-sombra),
+      inset 0 2px 3px rgba(255,255,255,.22), inset 0 -3px 6px rgba(0,0,0,.40)
   }
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .chip{border:1px solid var(--linea-fuerte);background:var(--superficie-2);border-radius:999px;
-    padding:7px 12px;font-size:12.5px;font-weight:700;color:var(--acento-texto)}
-  .chip:hover{background:var(--superficie-3)}
-  .chip.on{background:linear-gradient(135deg,#1B4D3E,#256350);color:#fff;border-color:var(--acento)}
+  .btn-scan:hover{filter:brightness(1.10);transform:translateY(-2px)}
+  .btn-scan:active{box-shadow:var(--clay-presion);transform:translateY(1px) scale(.99)}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .chip{border:1px solid var(--clay-borde);background:var(--clay-boton);border-radius:999px;
+    padding:7px 12px;font-size:12.5px;font-weight:700;color:var(--acento-texto);
+    box-shadow:var(--clay-mini-sombra);transition:all .15s ease}
+  .chip:hover{filter:brightness(1.04);transform:translateY(-1px)}
+  .chip.on{background:linear-gradient(135deg,#10b981 0%,#047857 100%);color:#fff;
+    border-color:rgba(255,255,255,.35);
+    box-shadow:0 8px 16px -6px rgba(16,185,129,.55), inset 0 2px 3px rgba(255,255,255,.45),
+      inset 0 -2px 4px rgba(0,0,0,.30)}
+  .chip.on:hover{filter:brightness(1.06)}
 
   /* ---------- producto ---------- */
-  .producto{border:1px solid var(--linea-fuerte);border-radius:12px;padding:12px;
-    background:var(--superficie-2);border-left:4px solid var(--acento)}
+  .producto{border:1px solid var(--clay-borde);border-radius:14px;padding:12px;
+    background:var(--clay-boton);border-left:4px solid #10b981;box-shadow:var(--clay-mini-sombra)}
   .producto .n{font-size:15px;font-weight:800}
   .producto .m{font-size:12px;color:var(--gris);margin-top:3px}
   .aviso{background:var(--amarillo-f);border:1px solid rgba(251,191,36,.4);color:var(--aviso-texto);
     border-radius:11px;padding:11px;font-size:13px;margin-top:10px}
 
   /* ---------- semáforo / lista ---------- */
-  .reg{background:var(--superficie);border:1px solid var(--marca-borde);border-left:5px solid var(--marca);
-    border-radius:14px;padding:13px;margin-bottom:9px;box-shadow:var(--sombra)}
+  .reg{background:var(--clay-tarjeta);border:1px solid var(--clay-borde);border-left:5px solid var(--marca);
+    border-radius:20px;padding:14px;margin-bottom:10px;box-shadow:var(--sombra)}
   .reg .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
   .reg .desc{font-size:15px;font-weight:800;line-height:1.25;color:var(--texto)}
   .reg .meta{font-size:12px;color:var(--gris);margin-top:4px}
   .reg .dias{font-size:14px;font-weight:800;white-space:nowrap;text-align:right}
   .reg .estado{font-size:10.5px;font-weight:800;color:var(--sobre-acento);background:var(--acento);
     display:inline-block;padding:3px 9px;border-radius:999px;margin-top:5px;text-transform:uppercase;
-    letter-spacing:.4px}
+    letter-spacing:.4px;border:1px solid transparent}
   .reg .acciones{display:flex;gap:7px;margin-top:11px}
   .reg .acciones button{flex:1;padding:10px;font-size:13px}
   .vacio{text-align:center;color:var(--gris);font-size:14px;padding:28px 10px}
 
   /* ---------- tabla (vista plana) ---------- */
-  .tabla-caja{background:var(--superficie);border:1px solid var(--marca-borde);border-radius:14px;
-    overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--sombra)}
+  .tabla-caja{background:var(--clay-tarjeta);border:1px solid var(--clay-borde);border-radius:18px;
+    padding:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--sombra)}
   table.datos{border-collapse:collapse;width:100%;min-width:700px;font-size:12.5px}
   table.datos th{
-    position:sticky;top:0;z-index:1;background:linear-gradient(180deg,#1B4D3E,#143c31);color:#fff;
+    position:sticky;top:0;z-index:1;
+    background:linear-gradient(180deg,#0a3a27 0%,#042418 100%);color:#fff;
     text-align:left;font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
     padding:10px 9px;white-space:nowrap;border-bottom:1px solid var(--marca-borde)
   }
+  table.datos thead th:first-child{border-radius:12px 0 0 12px}
+  table.datos thead th:last-child{border-radius:0 12px 12px 0}
   table.datos td{padding:9px;border-bottom:1px solid var(--linea);vertical-align:top}
   table.datos tbody tr:nth-child(even){background:var(--fila-par)}
   table.datos tbody tr:hover{background:var(--fila-hover)}
@@ -347,13 +440,13 @@
 
   /* ---------- kpis ---------- */
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-  .kpi{background:var(--kpi-fondo);border:1px solid var(--marca-borde);
-    border-top:4px solid var(--marca);border-radius:14px;padding:14px;box-shadow:var(--sombra)}
+  .kpi{background:var(--kpi-fondo);border:1px solid var(--clay-borde);
+    border-top:4px solid var(--marca);border-radius:18px;padding:15px;box-shadow:var(--sombra)}
   .kpi .v{font-size:29px;font-weight:800;line-height:1;letter-spacing:-.5px}
   .kpi .e{font-size:10.5px;color:var(--gris);margin-top:6px;font-weight:800;text-transform:uppercase;
     letter-spacing:.7px}
-  .barra{height:11px;border-radius:999px;overflow:hidden;display:flex;margin:8px 0 12px;
-    background:var(--barra-fondo)}
+  .barra{height:12px;border-radius:999px;overflow:hidden;display:flex;margin:8px 0 12px;
+    background:var(--barra-fondo);box-shadow:var(--clay-campo-sombra)}
   .barra span{display:block;height:100%}
   .leyenda{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 0;
     border-bottom:1px dashed var(--linea)}
@@ -365,10 +458,10 @@
   nav{
     position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:30;
     display:flex;align-items:flex-end;justify-content:space-around;gap:2px;
-    padding:8px 6px 7px;border-radius:24px;
-    background:linear-gradient(180deg,rgba(22,46,38,.82),rgba(10,25,20,.90));
-    border:1px solid rgba(255,255,255,.14);
-    box-shadow:0 18px 40px -18px rgba(0,0,0,.90), inset 0 1px 0 rgba(255,255,255,.18);
+    padding:8px 6px 7px;border-radius:26px;
+    background:linear-gradient(180deg,rgba(10,58,39,.88) 0%,rgba(4,36,24,.95) 100%);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.16);
     backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
     perspective:700px
   }
@@ -384,10 +477,10 @@
   nav button.on{color:#fff}
   nav button.on .dock-icon{
     width:58px;height:58px;margin-top:-12px;border-radius:18px;
-    background:linear-gradient(180deg,rgba(82,190,128,.38),rgba(82,190,128,.12));
-    border-color:rgba(82,190,128,.62);
-    box-shadow:0 14px 24px -10px rgba(0,0,0,.90), inset 0 1px 0 rgba(255,255,255,.55),
-      0 0 0 1px rgba(82,190,128,.22);
+    background:linear-gradient(180deg,rgba(52,211,153,.42),rgba(16,185,129,.14));
+    border-color:rgba(52,211,153,.62);
+    box-shadow:0 14px 24px -10px rgba(16,185,129,.55), inset 0 1px 0 rgba(255,255,255,.55),
+      0 0 0 1px rgba(52,211,153,.22);
     transform:translateY(-2px) scale(1.03)
   }
   nav button.on .dock-icon svg{width:38px;height:38px}
@@ -404,7 +497,7 @@
     nav button:hover .dock-icon svg{width:34px;height:34px}
     nav button:hover .dock-label{color:#fff}
     nav button.on:hover .dock-icon{
-      background:linear-gradient(180deg,rgba(82,190,128,.48),rgba(82,190,128,.18))
+      background:linear-gradient(180deg,rgba(52,211,153,.50),rgba(16,185,129,.18))
     }
     nav button.on:hover .dock-icon svg{width:40px;height:40px}
     .menu-item:hover .dock-icon{
@@ -416,50 +509,53 @@
   /* ---------- overlays ---------- */
   .overlay{
     position:fixed;inset:0;background:var(--velo);z-index:50;
-    display:flex;align-items:center;justify-content:center;padding:18px
+    display:flex;align-items:center;justify-content:center;padding:18px;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
   }
-  .overlay .caja{background:var(--superficie);border:1px solid var(--marca-borde);border-radius:18px;
-    padding:20px;width:100%;max-width:390px;box-shadow:0 24px 60px -20px rgba(0,0,0,.9)}
-  .overlay .caja h3{margin:0 0 6px;font-size:18px}
+  .overlay .caja{background:var(--clay-tarjeta);border:1px solid var(--clay-borde);border-radius:24px;
+    padding:22px;width:100%;max-width:390px;box-shadow:var(--sombra)}
+  .overlay .caja h3{margin:0 0 6px;font-size:18px;color:var(--texto)}
   .overlay .caja p{margin:0 0 14px;font-size:13.5px;color:var(--gris)}
 
   /* ---------- escáner ---------- */
-  #overlay-escaneo{background:#000;padding:0;flex-direction:column}
+  #overlay-escaneo{background:#000;padding:0;flex-direction:column;backdrop-filter:none}
   .video-caja{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
   #video-escaneo{width:100%;height:100%;object-fit:cover}
   .mira{
-    position:absolute;left:15%;right:15%;top:28%;height:44%;border:3px solid rgba(82,190,128,.95);
+    position:absolute;left:15%;right:15%;top:28%;height:44%;border:3px solid rgba(52,211,153,.95);
     border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)
   }
   .mira::after{
     content:'';position:absolute;left:6%;right:6%;top:50%;height:2px;
-    background:linear-gradient(90deg,transparent,rgba(82,190,128,.75),transparent);
+    background:linear-gradient(90deg,transparent,rgba(52,211,153,.75),transparent);
     animation:barrido 1.7s ease-in-out infinite
   }
   @keyframes barrido{0%,100%{transform:translateY(-26px)}50%{transform:translateY(26px)}}
   .scan-pie{
-    background:linear-gradient(180deg,#132A22,#0f211b);color:#fff;width:100%;
+    background:linear-gradient(180deg,#0a3a27,#042418);color:#fff;width:100%;
     padding:15px 14px calc(15px + env(safe-area-inset-bottom));text-align:center;
-    border-top:1px solid var(--marca-borde)
+    border-top:1px solid rgba(16,185,129,.30)
   }
   .scan-pie .t{font-size:15px;font-weight:800}
   .scan-pie .s{font-size:11.5px;color:var(--marco-suave);opacity:.75;margin-top:4px}
   .scan-botones{display:flex;gap:8px;margin-top:12px}
-  .scan-pie button{margin-top:0;flex:1;background:var(--marco-superficie);color:var(--marco-suave);
-    border:1px solid var(--marco-linea-2);padding:12px}
+  .scan-pie button{margin-top:0;flex:1;background:rgba(255,255,255,.08);color:#fff;
+    border:1px solid rgba(255,255,255,.18);padding:12px}
   .scan-pie button#btn-cerrar-escaneo{width:100%;margin-top:8px;background:transparent;
-    color:var(--marco-gris);border-color:var(--marco-linea)}
+    color:var(--marco-gris);border-color:rgba(255,255,255,.14)}
   .scan-pie button.linterna-on{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3b2503;border-color:#fcd34d}
 
   #toast{
     position:fixed;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));
-    background:var(--superficie-3);color:var(--texto);padding:12px 17px;border-radius:13px;font-size:14px;
-    z-index:60;max-width:88%;text-align:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.9);
-    border:1px solid var(--marca-borde)
+    background:linear-gradient(145deg,#1e293b,#0f172a);color:#f1f5f9;padding:12px 17px;
+    border-radius:14px;font-size:14px;
+    z-index:60;max-width:88%;text-align:center;
+    box-shadow:0 12px 30px -12px rgba(2,6,23,.85), inset 0 1px 1px rgba(255,255,255,.12);
+    border:1px solid rgba(16,185,129,.35)
   }
-  .girando{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);
-    border-top-color:var(--acento);border-radius:50%;animation:girar .7s linear infinite;vertical-align:-2px}
-  .girando-azul{border-color:rgba(82,190,128,.35);border-top-color:var(--acento);width:18px;height:18px}
+  .girando{display:inline-block;width:15px;height:15px;border:2px solid rgba(148,163,184,.35);
+    border-top-color:#34d399;border-radius:50%;animation:girar .7s linear infinite;vertical-align:-2px}
+  .girando-azul{border-color:rgba(52,211,153,.35);border-top-color:#34d399;width:18px;height:18px}
   @keyframes girar{to{transform:rotate(360deg)}}
 
   /* =====================================================================
@@ -471,7 +567,7 @@
   /* ---------- tableta ---------- */
   html[data-dispositivo="tablet"] main{max-width:920px;padding:16px 16px calc(122px + env(safe-area-inset-bottom))}
   html[data-dispositivo="tablet"] .kpis{grid-template-columns:repeat(4,1fr)}
-  html[data-dispositivo="tablet"] .tarjeta{padding:17px}
+  html[data-dispositivo="tablet"] .tarjeta{padding:18px}
 
   /* En el teléfono y la tableta el nombre de la empresa necesita todo el
      ancho: el icono de marca ya se ve en el menú lateral. */
@@ -503,7 +599,7 @@
     gap:14px;align-items:start}
   html[data-dispositivo="escritorio"] .columnas > *{margin-bottom:0}
   html[data-dispositivo="escritorio"] #vista-tabla .tabla-caja{margin-bottom:14px}
-</style>
+  </style>
 </head>
 <body>
 
